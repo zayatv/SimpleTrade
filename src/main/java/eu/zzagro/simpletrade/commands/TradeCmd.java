@@ -53,17 +53,17 @@ public class TradeCmd implements CommandExecutor {
             return false;
         }
 
-        if (!(SimpleTrade.getTargetMap.containsKey(player))) {
+        if (!(plugin.getTargetMap.containsKey(player))) {
             target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&6" + player.getName() + " &ahas sent you a trade request!"));
 
             uuid = UUID.randomUUID();
-            SimpleTrade.targetUuidMap.put(target, uuid);
-            SimpleTrade.playerUuidMap.put(player, uuid);
+            plugin.targetUuidMap.put(target, uuid);
+            plugin.playerUuidMap.put(player, uuid);
 
-            SimpleTrade.getPlayerMap.put(target, player);
-            SimpleTrade.getTargetMap.put(player, target);
-            player.sendMessage("Player: " + SimpleTrade.getPlayerMap.get(target) + ", Target: " + SimpleTrade.getTargetMap.get(player));
-            target.sendMessage("Player: " + SimpleTrade.getPlayerMap.get(target) + ", Target: " + SimpleTrade.getTargetMap.get(player));
+            plugin.getPlayerMap.put(target, player);
+            plugin.getTargetMap.put(player, target);
+            player.sendMessage("Player: " + plugin.getPlayerMap.get(target) + ", Target: " + plugin.getTargetMap.get(player));
+            target.sendMessage("Player: " + plugin.getPlayerMap.get(target) + ", Target: " + plugin.getTargetMap.get(player));
 
             TextComponent accept = new TextComponent();
             accept.setText("[ACCEPT] ");
@@ -93,21 +93,21 @@ public class TradeCmd implements CommandExecutor {
             });
 
             task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-                SimpleTrade.targetUuidMap.remove(target);
-                SimpleTrade.getPlayerMap.remove(target);
-                SimpleTrade.getTargetMap.remove(player);
+                plugin.targetUuidMap.remove(target);
+                plugin.getPlayerMap.remove(target);
+                plugin.getTargetMap.remove(player);
                 player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYour trade request to &6" + target.getName() + " &cexpired!"));
                 target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cThe trade request from &6" + player.getName() + " &cexpired!"));
             }, 20*15);
-        } else if (!(SimpleTrade.getTargetMap.get(player).getName().equalsIgnoreCase(target.getDisplayName()) && SimpleTrade.getPlayerMap.get(target).getName().equalsIgnoreCase(player.getDisplayName()))) {
+        } else if (!(plugin.getTargetMap.get(player).getName().equalsIgnoreCase(target.getDisplayName()) && plugin.getPlayerMap.get(target).getName().equalsIgnoreCase(player.getDisplayName()))) {
             target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&6" + player.getName() + " &ahas sent you a trade request!"));
 
             uuid = UUID.randomUUID();
-            SimpleTrade.targetUuidMap.put(target, uuid);
-            SimpleTrade.playerUuidMap.put(player, uuid);
+            plugin.targetUuidMap.put(target, uuid);
+            plugin.playerUuidMap.put(player, uuid);
 
-            SimpleTrade.getPlayerMap.put(target, player);
-            SimpleTrade.getTargetMap.put(player, target);
+            plugin.getPlayerMap.put(target, player);
+            plugin.getTargetMap.put(player, target);
 
             TextComponent accept = new TextComponent();
             accept.setText("[ACCEPT] ");
@@ -132,9 +132,9 @@ public class TradeCmd implements CommandExecutor {
             player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&aYou've sent a trade request to &6" + target.getName()));
 
             task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-                SimpleTrade.targetUuidMap.remove(target);
-                SimpleTrade.getPlayerMap.remove(target);
-                SimpleTrade.getTargetMap.remove(player);
+                plugin.targetUuidMap.remove(target);
+                plugin.getPlayerMap.remove(target);
+                plugin.getTargetMap.remove(player);
                 player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYour trade request to &6" + target.getName() + " &cexpired!"));
                 target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cThe trade request from &6" + player.getName() + " &cexpired!"));
             }, 20*15);

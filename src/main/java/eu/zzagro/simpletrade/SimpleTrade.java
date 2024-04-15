@@ -49,8 +49,8 @@ public final class SimpleTrade extends JavaPlugin {
         saveConfig();
     }
 
-    public static Map<Player, Player> getPlayerMap = new HashMap<>();
-    public static Map<Player, Player> getTargetMap = new HashMap<>();
-    public static Map<Player, UUID> targetUuidMap = new HashMap<>();
-    public static Map<Player, UUID> playerUuidMap = new HashMap<>();
+    public Map<Player, Player> getPlayerMap = new HashMap<>();
+    public Map<Player, Player> getTargetMap = new HashMap<>();
+    public Map<Player, UUID> targetUuidMap = new HashMap<>();
+    public Map<Player, UUID> playerUuidMap = new HashMap<>();
 }

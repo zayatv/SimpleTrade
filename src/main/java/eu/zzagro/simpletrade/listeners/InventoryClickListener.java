@@ -35,13 +35,13 @@ public class InventoryClickListener implements Listener {
         if (!e.getView().getTitle().equalsIgnoreCase("Trade Menu")) return;
 
         e.setCancelled(true);
-        Player target = Bukkit.getPlayerExact(SimpleTrade.getTargetMap.get(player).getName());
+        Player target = Bukkit.getPlayerExact(plugin.getTargetMap.get(player).getName());
         if (target == null) {
             player.sendMessage("null");
             return;
         }
 
-        if (!SimpleTrade.playerUuidMap.get(player).equals(SimpleTrade.targetUuidMap.get(target))) return;
+        if (!plugin.playerUuidMap.get(player).equals(plugin.targetUuidMap.get(target))) return;
 
         isPlayerReady.put(player, false);
 

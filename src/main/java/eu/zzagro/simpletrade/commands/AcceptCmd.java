@@ -22,14 +22,14 @@ public class AcceptCmd implements CommandExecutor {
         if (!(sender instanceof Player)) return false;
 
         Player player = (Player) sender;
-        Player target = SimpleTrade.getTargetMap.get(player);
+        Player target = plugin.getTargetMap.get(player);
         //Just here to check
         player.sendMessage("Player: " + player.getName() + ", Target: " + target.getName());
         if (target == null) return false;
         if (args.length != 1) player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cUsage: /accept <tradeUUID>"));
 
-        if (SimpleTrade.targetUuidMap.containsKey(player)) {
-            UUID uuid = SimpleTrade.targetUuidMap.get(player);
+        if (plugin.targetUuidMap.containsKey(player)) {
+            UUID uuid = plugin.targetUuidMap.get(player);
             if (args[0].equalsIgnoreCase(uuid.toString())) {
                 Bukkit.getScheduler().cancelTask(TradeCmd.task.getTaskId());
                 plugin.tradeInv.openTargetInv(target);
