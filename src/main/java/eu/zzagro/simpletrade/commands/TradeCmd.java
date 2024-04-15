@@ -1,6 +1,7 @@
 package eu.zzagro.simpletrade.commands;
 
 import eu.zzagro.simpletrade.SimpleTrade;
+import eu.zzagro.simpletrade.utils.Pair;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.Bukkit;
@@ -16,7 +17,7 @@ import java.util.UUID;
 
 public class TradeCmd implements CommandExecutor {
 
-    public UUID uuid;
+    private UUID uuid;
 
     public static BukkitTask task;
 
@@ -53,52 +54,57 @@ public class TradeCmd implements CommandExecutor {
             return false;
         }
 
-        if (!(plugin.getTargetMap.containsKey(player))) {
-            target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&6" + player.getName() + " &ahas sent you a trade request!"));
+        Pair<Player, Player> playerTargetPair = new Pair<>(player, target);
+        boolean outgoingRequest = false;
+        boolean incomingRequest = false;
+        UUID uuid = null;
 
-            uuid = UUID.randomUUID();
-            plugin.targetUuidMap.put(target, uuid);
-            plugin.playerUuidMap.put(player, uuid);
-
-            plugin.getPlayerMap.put(target, player);
-            plugin.getTargetMap.put(player, target);
-            player.sendMessage("Player: " + plugin.getPlayerMap.get(target) + ", Target: " + plugin.getTargetMap.get(player));
-            target.sendMessage("Player: " + plugin.getPlayerMap.get(target) + ", Target: " + plugin.getTargetMap.get(player));
-
-            target.spigot().sendMessage(tradeText(uuid));
-            player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&aYou've sent a trade request to &6" + target.getName()));
-
-            tradeExpired(player, target, 20*15);
-        } else if (!(plugin.getTargetMap.get(player).getName().equalsIgnoreCase(target.getDisplayName()) && plugin.getPlayerMap.get(target).getName().equalsIgnoreCase(player.getDisplayName()))) {
-            target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&6" + player.getName() + " &ahas sent you a trade request!"));
-
-            uuid = UUID.randomUUID();
-            plugin.targetUuidMap.put(target, uuid);
-            plugin.playerUuidMap.put(player, uuid);
-
-            plugin.getPlayerMap.put(target, player);
-            plugin.getTargetMap.put(player, target);
-
-            target.spigot().sendMessage(tradeText(uuid));
-            player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&aYou've sent a trade request to &6" + target.getName()));
-
-            tradeExpired(player, target, 20*15);
-        } else {
-            player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYou already have an outgoing trade request to this player!"));
+        for (Pair<Player, Player> pair : plugin.tradeMap.keySet())
+        {
+            if (pair.equalsPair(playerTargetPair))
+            {
+                outgoingRequest = true;
+                break;
+            }
+            if (pair.equalsPair(playerTargetPair.reversed()))
+            {
+                incomingRequest = true;
+                uuid = plugin.tradeMap.get(pair);
+                break;
+            }
         }
+
+        if (!outgoingRequest && !incomingRequest) {
+            target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&6" + player.getName() + " &ahas sent you a trade request!"));
+
+            uuid = UUID.randomUUID();
+            plugin.tradeMap.put(playerTargetPair, uuid);
+
+            target.spigot().sendMessage(tradeText(uuid));
+            player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&aYou've sent a trade request to &6" + target.getName()));
+
+            tradeExpired(playerTargetPair, 20*15);
+            return true;
+        }
+
+        if (incomingRequest)
+        {
+            player.performCommand("accept " + uuid);
+            return true;
+        }
+
+        player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYou already have an outgoing trade request to this player!"));
 
         return false;
     }
 
-    private void tradeExpired(Player player, Player target, int time)
+    private void tradeExpired(Pair<Player, Player> pair, int time)
     {
         task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-            plugin.targetUuidMap.remove(target);
-            plugin.getPlayerMap.remove(target);
-            plugin.getTargetMap.remove(player);
-            player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYour trade request to &6" + target.getName() + " &cexpired!"));
-            target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cThe trade request from &6" + player.getName() + " &cexpired!"));
-        }, 20*15);
+            plugin.tradeMap.remove(pair);
+            pair.getKey().sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYour trade request to &6" + pair.getValue().getName() + " &cexpired!"));
+            pair.getValue().sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cThe trade request from &6" + pair.getKey().getName() + " &cexpired!"));
+        }, time);
     }
 
     private TextComponent tradeText(UUID uuid)

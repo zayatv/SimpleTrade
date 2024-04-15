@@ -5,6 +5,7 @@ import eu.zzagro.simpletrade.commands.TradeCmd;
 import eu.zzagro.simpletrade.listeners.InventoryClickListener;
 import eu.zzagro.simpletrade.listeners.PlayerInteractListener;
 import eu.zzagro.simpletrade.utils.MetaManager;
+import eu.zzagro.simpletrade.utils.Pair;
 import eu.zzagro.simpletrade.utils.TradeInv;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -29,7 +30,7 @@ public final class SimpleTrade extends JavaPlugin {
         getCommand("trade").setExecutor(new TradeCmd(this));
         getCommand("accept").setExecutor(new AcceptCmd(this));
 
-        getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryClickListener(this), this);
 
         loadConfig();
@@ -49,8 +50,5 @@ public final class SimpleTrade extends JavaPlugin {
         saveConfig();
     }
 
-    public Map<Player, Player> getPlayerMap = new HashMap<>();
-    public Map<Player, Player> getTargetMap = new HashMap<>();
-    public Map<Player, UUID> targetUuidMap = new HashMap<>();
-    public Map<Player, UUID> playerUuidMap = new HashMap<>();
+    public Map<Pair<Player, Player>, UUID> tradeMap = new HashMap<>();
 }

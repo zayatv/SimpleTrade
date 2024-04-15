@@ -8,7 +8,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class PlayerInteractListener implements Listener {
+
+    private final SimpleTrade plugin;
+
+    public PlayerInteractListener(SimpleTrade plugin) {
+        this.plugin = plugin;
+    }
+
+    private Map<Player, Long> lastSendTradeRequest = new HashMap<>();
 
     @EventHandler
     public void onInteract(PlayerInteractAtEntityEvent e) {
@@ -17,7 +28,11 @@ public class PlayerInteractListener implements Listener {
 
         if (player.isSneaking()) {
             if (player.hasPermission("simpletrade.trade") && target.hasPermission("simpletrade.trade")) {
-                player.performCommand("trade " + target.getName());
+                if (!lastSendTradeRequest.containsKey(player) || System.currentTimeMillis() - lastSendTradeRequest.get(player) >= 1000)
+                {
+                    player.performCommand("trade " + target.getName());
+                    lastSendTradeRequest.put(player, System.currentTimeMillis());
+                }
             }
         }
     }

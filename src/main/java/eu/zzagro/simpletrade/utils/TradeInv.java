@@ -17,8 +17,6 @@ public class TradeInv {
     }
 
     public void openPlayerInv(Player player) {
-        player.sendMessage("Open Player Inv");
-        //Inventory inv = Bukkit.createInventory(player, 54, "Trade " + TradeCmd.playerNameMap.get(target).getName());
         Inventory inv = Bukkit.createInventory(player, 54, "Trade Menu");
 
         ItemStack emptyItem = plugin.metaManager.emptyItem;
@@ -44,8 +42,6 @@ public class TradeInv {
     }
 
     public void openTargetInv(Player target) {
-        target.sendMessage("Open Target Inv");
-        //Inventory inv = Bukkit.createInventory(target, 54, "Trade " + TradeCmd.targetNameMap.get(player).getName());
         Inventory inv = Bukkit.createInventory(target, 54, "Trade Menu");
 
         ItemStack emptyItem = plugin.metaManager.emptyItem;

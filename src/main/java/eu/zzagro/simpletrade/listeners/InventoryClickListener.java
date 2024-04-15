@@ -26,7 +26,7 @@ public class InventoryClickListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    /*@EventHandler
     public void onClick(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
 
@@ -67,5 +67,5 @@ public class InventoryClickListener implements Listener {
         if (e.getClickedInventory() instanceof PlayerInventory) {
 
         }
-    }
+    }*/
 }
