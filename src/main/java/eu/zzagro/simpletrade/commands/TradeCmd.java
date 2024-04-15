@@ -65,40 +65,10 @@ public class TradeCmd implements CommandExecutor {
             player.sendMessage("Player: " + plugin.getPlayerMap.get(target) + ", Target: " + plugin.getTargetMap.get(player));
             target.sendMessage("Player: " + plugin.getPlayerMap.get(target) + ", Target: " + plugin.getTargetMap.get(player));
 
-            TextComponent accept = new TextComponent();
-            accept.setText("[ACCEPT] ");
-            accept.setColor(ChatColor.GREEN);
-            accept.setBold(true);
-            accept.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/accept " + uuid));
-            accept.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to accept").create()));
-
-            TextComponent deny = new TextComponent();
-            deny.setText("[DENY]");
-            deny.setColor(ChatColor.RED);
-            deny.setBold(true);
-            deny.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/deny " + uuid));
-            deny.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to deny").create()));
-
-            TextComponent text = new TextComponent();
-            text.setText(SimpleTrade.color(SimpleTrade.prefix + "&6Do you want to accept? "));
-            text.addExtra(accept);
-            accept.addExtra(deny);
-
-            target.spigot().sendMessage(text);
+            target.spigot().sendMessage(tradeText(uuid));
             player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&aYou've sent a trade request to &6" + target.getName()));
 
-            Bukkit.getOnlinePlayers().forEach(p -> {
-                //p.sendMessage("Target: " + getTargetMap.get(player).getName());
-                //p.sendMessage("Player: " + getPlayerMap.get(target).getName());
-            });
-
-            task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-                plugin.targetUuidMap.remove(target);
-                plugin.getPlayerMap.remove(target);
-                plugin.getTargetMap.remove(player);
-                player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYour trade request to &6" + target.getName() + " &cexpired!"));
-                target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cThe trade request from &6" + player.getName() + " &cexpired!"));
-            }, 20*15);
+            tradeExpired(player, target, 20*15);
         } else if (!(plugin.getTargetMap.get(player).getName().equalsIgnoreCase(target.getDisplayName()) && plugin.getPlayerMap.get(target).getName().equalsIgnoreCase(player.getDisplayName()))) {
             target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&6" + player.getName() + " &ahas sent you a trade request!"));
 
@@ -109,39 +79,49 @@ public class TradeCmd implements CommandExecutor {
             plugin.getPlayerMap.put(target, player);
             plugin.getTargetMap.put(player, target);
 
-            TextComponent accept = new TextComponent();
-            accept.setText("[ACCEPT] ");
-            accept.setColor(ChatColor.GREEN);
-            accept.setBold(true);
-            accept.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/accept " + uuid));
-            accept.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to accept").create()));
-
-            TextComponent deny = new TextComponent();
-            deny.setText("[DENY]");
-            deny.setColor(ChatColor.RED);
-            deny.setBold(true);
-            deny.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/deny " + uuid));
-            deny.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to deny").create()));
-
-            TextComponent text = new TextComponent();
-            text.setText(SimpleTrade.color(SimpleTrade.prefix + "&6Do you want to accept? "));
-            text.addExtra(accept);
-            accept.addExtra(deny);
-
-            target.spigot().sendMessage(text);
+            target.spigot().sendMessage(tradeText(uuid));
             player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&aYou've sent a trade request to &6" + target.getName()));
 
-            task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-                plugin.targetUuidMap.remove(target);
-                plugin.getPlayerMap.remove(target);
-                plugin.getTargetMap.remove(player);
-                player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYour trade request to &6" + target.getName() + " &cexpired!"));
-                target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cThe trade request from &6" + player.getName() + " &cexpired!"));
-            }, 20*15);
+            tradeExpired(player, target, 20*15);
         } else {
             player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYou already have an outgoing trade request to this player!"));
         }
 
         return false;
+    }
+
+    private void tradeExpired(Player player, Player target, int time)
+    {
+        task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+            plugin.targetUuidMap.remove(target);
+            plugin.getPlayerMap.remove(target);
+            plugin.getTargetMap.remove(player);
+            player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYour trade request to &6" + target.getName() + " &cexpired!"));
+            target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cThe trade request from &6" + player.getName() + " &cexpired!"));
+        }, 20*15);
+    }
+
+    private TextComponent tradeText(UUID uuid)
+    {
+        TextComponent accept = new TextComponent();
+        accept.setText("[ACCEPT] ");
+        accept.setColor(ChatColor.GREEN);
+        accept.setBold(true);
+        accept.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/accept " + uuid));
+        accept.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to accept").create()));
+
+        TextComponent deny = new TextComponent();
+        deny.setText("[DENY]");
+        deny.setColor(ChatColor.RED);
+        deny.setBold(true);
+        deny.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/deny " + uuid));
+        deny.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to deny").create()));
+
+        TextComponent text = new TextComponent();
+        text.setText(SimpleTrade.color(SimpleTrade.prefix + "&6Do you want to accept? "));
+        text.addExtra(accept);
+        accept.addExtra(deny);
+
+        return text;
     }
 }
