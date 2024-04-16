@@ -2,6 +2,7 @@ package eu.zzagro.simpletrade.listeners;
 
 import eu.zzagro.simpletrade.SimpleTrade;
 import eu.zzagro.simpletrade.commands.TradeCmd;
+import eu.zzagro.simpletrade.utils.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,7 +27,7 @@ public class InventoryClickListener implements Listener {
         this.plugin = plugin;
     }
 
-    /*@EventHandler
+    @EventHandler
     public void onClick(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
 
@@ -35,13 +36,13 @@ public class InventoryClickListener implements Listener {
         if (!e.getView().getTitle().equalsIgnoreCase("Trade Menu")) return;
 
         e.setCancelled(true);
-        Player target = Bukkit.getPlayerExact(plugin.getTargetMap.get(player).getName());
+
+        Player target = plugin.openTrades.get(player);
+
         if (target == null) {
             player.sendMessage("null");
             return;
         }
-
-        if (!plugin.playerUuidMap.get(player).equals(plugin.targetUuidMap.get(target))) return;
 
         isPlayerReady.put(player, false);
 
@@ -50,7 +51,6 @@ public class InventoryClickListener implements Listener {
         ItemStack waitingItem = plugin.metaManager.waitingItem;
 
         if (e.getSlot() == 39 && e.getCurrentItem().isSimilar(confirmItem)) {
-            //player.sendMessage("Player: " + TradeCmd.playerNameMap.get(target).getName() + ", Target: " + target.getName());
             isPlayerReady.put(player, true);
             target.getInventory().setItem(41, readyItem);
             player.getInventory().setItem(39, readyItem);
@@ -62,10 +62,12 @@ public class InventoryClickListener implements Listener {
         if (isTargetReady.get(target) && isPlayerReady.get(player)) {
             player.getOpenInventory().close();
             target.getOpenInventory().close();
+            plugin.openTrades.remove(player, target);
+            plugin.openTrades.remove(target, player);
         }
 
         if (e.getClickedInventory() instanceof PlayerInventory) {
 
         }
-    }*/
+    }
 }

@@ -19,8 +19,6 @@ public class PlayerInteractListener implements Listener {
         this.plugin = plugin;
     }
 
-    private Map<Player, Long> lastSendTradeRequest = new HashMap<>();
-
     @EventHandler
     public void onInteract(PlayerInteractAtEntityEvent e) {
         Player player = e.getPlayer();
@@ -28,11 +26,7 @@ public class PlayerInteractListener implements Listener {
 
         if (player.isSneaking()) {
             if (player.hasPermission("simpletrade.trade") && target.hasPermission("simpletrade.trade")) {
-                if (!lastSendTradeRequest.containsKey(player) || System.currentTimeMillis() - lastSendTradeRequest.get(player) >= 1000)
-                {
-                    player.performCommand("trade " + target.getName());
-                    lastSendTradeRequest.put(player, System.currentTimeMillis());
-                }
+                player.performCommand("trade " + target.getName());
             }
         }
     }

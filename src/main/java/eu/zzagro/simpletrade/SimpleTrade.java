@@ -51,4 +51,5 @@ public final class SimpleTrade extends JavaPlugin {
     }
 
     public Map<Pair<Player, Player>, UUID> tradeMap = new HashMap<>();
+    public Map<Player, Player> openTrades = new HashMap<>();
 }

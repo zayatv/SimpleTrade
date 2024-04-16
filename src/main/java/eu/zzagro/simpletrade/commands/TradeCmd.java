@@ -19,6 +19,8 @@ public class TradeCmd implements CommandExecutor {
 
     private UUID uuid;
 
+    private Map<Player, Long> lastSendTradeRequest = new HashMap<>();
+
     public static BukkitTask task;
 
     private final SimpleTrade plugin;
@@ -74,6 +76,15 @@ public class TradeCmd implements CommandExecutor {
             }
         }
 
+        if (incomingRequest)
+        {
+            player.performCommand("accept " + uuid);
+            return true;
+        }
+
+        if (!lastSendTradeRequest.containsKey(player) || System.currentTimeMillis() - lastSendTradeRequest.get(player) >= 1000) return false;
+        lastSendTradeRequest.put(player, System.currentTimeMillis());
+
         if (!outgoingRequest && !incomingRequest) {
             target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&6" + player.getName() + " &ahas sent you a trade request!"));
 
@@ -84,12 +95,6 @@ public class TradeCmd implements CommandExecutor {
             player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&aYou've sent a trade request to &6" + target.getName()));
 
             tradeExpired(playerTargetPair, 20*15);
-            return true;
-        }
-
-        if (incomingRequest)
-        {
-            player.performCommand("accept " + uuid);
             return true;
         }
 

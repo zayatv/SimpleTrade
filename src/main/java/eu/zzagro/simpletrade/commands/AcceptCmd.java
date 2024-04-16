@@ -41,6 +41,8 @@ public class AcceptCmd implements CommandExecutor {
             Bukkit.getScheduler().cancelTask(TradeCmd.task.getTaskId());
             plugin.tradeInv.openTargetInv(player);
             plugin.tradeInv.openPlayerInv(target);
+            plugin.openTrades.put(player, target);
+            plugin.openTrades.put(target, player);
             plugin.tradeMap.remove(playerTargetPair);
         } else {
             target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cThat trade doesn't exist"));
