@@ -1,12 +1,15 @@
 package eu.zzagro.simpletrade.utils;
 
 import eu.zzagro.simpletrade.SimpleTrade;
-import eu.zzagro.simpletrade.commands.TradeCmd;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TradeInv {
 
@@ -19,20 +22,28 @@ public class TradeInv {
     public void openPlayerInv(Player player) {
         Inventory inv = Bukkit.createInventory(player, 54, "Trade Menu");
 
+        ItemStack unplaceableItem = plugin.metaManager.unplaceableItem;
+        ItemMeta unplaceableMeta = plugin.metaManager.getUnplaceableMeta();
+        for (int i = 0; i < inv.getSize(); i++)
+        {
+            inv.setItem(i, unplaceableItem);
+        }
+
         ItemStack emptyItem = plugin.metaManager.emptyItem;
-        ItemMeta emptyMeta = plugin.metaManager.getEmptyMeta();
-        int[] emptySlots = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 22, 31, 40, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 50, 51, 52, 53};
+        int[] emptySlots = getEmptySlots();
         for (int emptySlot : emptySlots) {
             inv.setItem(emptySlot, emptyItem);
         }
 
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.confirmItem");
+
         ItemStack confirmItem = plugin.metaManager.confirmItem;
         ItemMeta confirmMeta = plugin.metaManager.getConfirmMeta();
-        inv.setItem(39, confirmItem);
+        inv.setItem(getIndex(section), confirmItem);
 
         ItemStack waitingItem = plugin.metaManager.waitingItem;
         ItemMeta waitingMeta = plugin.metaManager.getWaitingMeta();
-        inv.setItem(41, waitingItem);
+        inv.setItem(getIndexMirrored(section), waitingItem);
 
         ItemStack cancelTradeItem = plugin.metaManager.cancelTradeItem;
         ItemMeta cancelTradeMeta = plugin.metaManager.getCancelTradeMeta();
@@ -41,28 +52,43 @@ public class TradeInv {
         player.openInventory(inv);
     }
 
-    public void openTargetInv(Player target) {
-        Inventory inv = Bukkit.createInventory(target, 54, "Trade Menu");
+    private int[] getEmptySlots()
+    {
+        List<Integer> emptySlots = new ArrayList<>();
 
-        ItemStack emptyItem = plugin.metaManager.emptyItem;
-        ItemMeta emptyMeta = plugin.metaManager.getEmptyMeta();
-        int[] emptySlots = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 22, 31, 40, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 50, 51, 52, 53};
-        for (int emptySlot : emptySlots) {
-            inv.setItem(emptySlot, emptyItem);
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.placeableSlots");
+
+        for (String path : section.getKeys(false))
+        {
+            ConfigurationSection pathSection = section.getConfigurationSection(path);
+
+            int inventoryIndex = getIndex(pathSection);
+            int inventoryIndexMirrored = getIndexMirrored(pathSection);
+
+            emptySlots.add(inventoryIndex);
+            emptySlots.add(inventoryIndexMirrored);
         }
 
-        ItemStack confirmItem = plugin.metaManager.confirmItem;
-        ItemMeta confirmMeta = plugin.metaManager.getConfirmMeta();
-        inv.setItem(39, confirmItem);
+        return emptySlots.stream().mapToInt(i -> i).toArray();
+    }
 
-        ItemStack waitingItem = plugin.metaManager.waitingItem;
-        ItemMeta waitingMeta = plugin.metaManager.getWaitingMeta();
-        inv.setItem(41, waitingItem);
+    private int getIndex(ConfigurationSection section)
+    {
+        int row = section.getInt("row");
+        int column = section.getInt("column");
 
-        ItemStack cancelTradeItem = plugin.metaManager.cancelTradeItem;
-        ItemMeta cancelTradeMeta = plugin.metaManager.getCancelTradeMeta();
-        inv.setItem(49, cancelTradeItem);
+        if (row > 5 || column > 4) throw new IllegalArgumentException();
 
-        target.openInventory(inv);
+        return (row - 1) * 9 + column - 1;
+    }
+
+    private int getIndexMirrored(ConfigurationSection section)
+    {
+        int row = section.getInt("row");
+        int column = section.getInt("column");
+
+        if (row > 5 || column > 4) throw new IllegalArgumentException();
+
+        return row * 9 - column;
     }
 }

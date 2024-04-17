@@ -9,9 +9,11 @@ import eu.zzagro.simpletrade.utils.Pair;
 import eu.zzagro.simpletrade.utils.TradeInv;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -20,7 +22,11 @@ public final class SimpleTrade extends JavaPlugin {
 
     public static String prefix = ChatColor.translateAlternateColorCodes('&', "&bSimpleTrade &7>> ");
 
-    FileConfiguration config = this.getConfig();
+    private File configFile;
+    private FileConfiguration config;
+
+    public Map<Pair<Player, Player>, UUID> tradeMap = new HashMap<>();
+    public Map<Player, Player> openTrades = new HashMap<>();
 
     public TradeInv tradeInv = new TradeInv(this);
     public MetaManager metaManager = new MetaManager();
@@ -33,23 +39,29 @@ public final class SimpleTrade extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryClickListener(this), this);
 
-        loadConfig();
+        createConfig();
     }
 
     @Override
     public void onDisable() {
-        saveConfig();
+        saveResource("trade.yml", false);
     }
 
     public static String color(String message) {
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 
-    public void loadConfig() {
-        config.options().copyDefaults(true);
-        saveConfig();
+    public FileConfiguration getConfig() {
+        return this.config;
     }
 
-    public Map<Pair<Player, Player>, UUID> tradeMap = new HashMap<>();
-    public Map<Player, Player> openTrades = new HashMap<>();
+    private void createConfig() {
+        configFile = new File(getDataFolder(), "custom.yml");
+        if (!configFile.exists()) {
+            configFile.getParentFile().mkdirs();
+            saveResource("trade.yml", false);
+        }
+
+        config = YamlConfiguration.loadConfiguration(configFile);
+    }
 }

@@ -21,6 +21,8 @@ public class PlayerInteractListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractAtEntityEvent e) {
+        if(!(e.getRightClicked() instanceof Player)) return;
+
         Player player = e.getPlayer();
         Player target = (Player) e.getRightClicked();
 

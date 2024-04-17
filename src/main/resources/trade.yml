@@ -1,0 +1,32 @@
+tradeInventory:
+  confirmItem:
+    row: 4
+    column: 4
+  placeableSlots:
+    1:
+      row: 2
+      column: 2
+    2:
+      row: 2
+      column: 3
+    3:
+      row: 2
+      column: 4
+    4:
+      row: 3
+      column: 2
+    5:
+      row: 3
+      column: 3
+    6:
+      row: 3
+      column: 4
+    7:
+      row: 4
+      column: 2
+    8:
+      row: 4
+      column: 3
+    9:
+      row: 4
+      column: 4
