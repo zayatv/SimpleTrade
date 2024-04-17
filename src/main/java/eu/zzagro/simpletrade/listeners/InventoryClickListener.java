@@ -4,6 +4,7 @@ import eu.zzagro.simpletrade.SimpleTrade;
 import eu.zzagro.simpletrade.commands.TradeCmd;
 import eu.zzagro.simpletrade.utils.Pair;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,7 +22,6 @@ public class InventoryClickListener implements Listener {
     private final SimpleTrade plugin;
 
     private Map<Player, Boolean> isPlayerReady = new HashMap<>();
-    private Map<Player, Boolean> isTargetReady = new HashMap<>();
 
     public InventoryClickListener(SimpleTrade plugin) {
         this.plugin = plugin;
@@ -44,30 +44,55 @@ public class InventoryClickListener implements Listener {
             return;
         }
 
-        isPlayerReady.put(player, false);
+        if (!isPlayerReady.containsKey(player))
+        {
+            isPlayerReady.put(player, false);
+            isPlayerReady.put(target, false);
+        }
 
         ItemStack confirmItem = plugin.metaManager.confirmItem;
         ItemStack readyItem = plugin.metaManager.readyItem;
         ItemStack waitingItem = plugin.metaManager.waitingItem;
+        ItemStack cancelItem = plugin.metaManager.cancelTradeItem;
 
-        if (e.getSlot() == 39 && e.getCurrentItem().isSimilar(confirmItem)) {
-            isPlayerReady.put(player, true);
-            target.getInventory().setItem(41, readyItem);
-            player.getInventory().setItem(39, readyItem);
-        } else if (e.getSlot() == 39 && e.getCurrentItem().isSimilar(readyItem)) {
-            isPlayerReady.put(player, false);
-            target.getInventory().setItem(41, waitingItem);
-            player.getInventory().setItem(39, confirmItem);
+        if (e.getSlot() == 49 && e.getCurrentItem().isSimilar(cancelItem))
+        {
+            closeInv(player, target);
+            return;
         }
-        if (isTargetReady.get(target) && isPlayerReady.get(player)) {
-            player.getOpenInventory().close();
-            target.getOpenInventory().close();
-            plugin.openTrades.remove(player, target);
-            plugin.openTrades.remove(target, player);
+
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.confirmItem");
+        int playerConfirmSlot = plugin.tradeInv.getIndex(section);
+        int targetConfirmSlot = plugin.tradeInv.getIndexMirrored(section);
+
+        if (e.getSlot() == playerConfirmSlot && e.getCurrentItem().isSimilar(confirmItem)) {
+            isPlayerReady.put(player, true);
+            target.getOpenInventory().setItem(targetConfirmSlot, readyItem);
+            e.getView().setItem(playerConfirmSlot, readyItem);
+
+            System.out.println(isPlayerReady.get(player) + " : " + player.getName() + ", " + isPlayerReady.get(target) + " : " + target.getName());
+        } else if (e.getSlot() == playerConfirmSlot && e.getCurrentItem().isSimilar(readyItem)) {
+            isPlayerReady.put(player, false);
+            target.getOpenInventory().setItem(targetConfirmSlot, waitingItem);
+            e.getView().setItem(playerConfirmSlot, confirmItem);
+
+            System.out.println(isPlayerReady.get(player) + " : " + player.getName() + ", " + isPlayerReady.get(target) + " : " + target.getName());
+        }
+        if (isPlayerReady.get(target) && isPlayerReady.get(player)) {
+            closeInv(player, target);
+            return;
         }
 
         if (e.getClickedInventory() instanceof PlayerInventory) {
 
         }
+    }
+
+    private void closeInv(Player player, Player target)
+    {
+        player.getOpenInventory().close();
+        target.getOpenInventory().close();
+        plugin.openTrades.remove(player, target);
+        plugin.openTrades.remove(target, player);
     }
 }

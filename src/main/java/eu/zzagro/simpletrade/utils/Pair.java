@@ -45,4 +45,24 @@ public class Pair<T, U> {
     {
         return (pair.getKey() == key && pair.getValue() == value) || (pair.getKey() == value && pair.getValue() == key);
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (obj == this) return true;
+
+        if (!(obj instanceof Pair)) return false;
+
+        Pair pair = (Pair) obj;
+        return equalsPair(pair);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 17;
+        result = prime * result + ((key == null) ? 0 : key.hashCode());
+        return result;
+    }
 }

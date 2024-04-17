@@ -56,7 +56,7 @@ public final class SimpleTrade extends JavaPlugin {
     }
 
     private void createConfig() {
-        configFile = new File(getDataFolder(), "custom.yml");
+        configFile = new File(getDataFolder(), "trade.yml");
         if (!configFile.exists()) {
             configFile.getParentFile().mkdirs();
             saveResource("trade.yml", false);

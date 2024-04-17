@@ -19,7 +19,7 @@ public class TradeInv {
         this.plugin = plugin;
     }
 
-    public void openPlayerInv(Player player) {
+    public void openTradeInventory(Player player) {
         Inventory inv = Bukkit.createInventory(player, 54, "Trade Menu");
 
         ItemStack unplaceableItem = plugin.metaManager.unplaceableItem;
@@ -72,22 +72,22 @@ public class TradeInv {
         return emptySlots.stream().mapToInt(i -> i).toArray();
     }
 
-    private int getIndex(ConfigurationSection section)
+    public int getIndex(ConfigurationSection section)
     {
         int row = section.getInt("row");
         int column = section.getInt("column");
 
-        if (row > 5 || column > 4) throw new IllegalArgumentException();
+        if (row > 6 || column > 4) throw new IllegalArgumentException();
 
         return (row - 1) * 9 + column - 1;
     }
 
-    private int getIndexMirrored(ConfigurationSection section)
+    public int getIndexMirrored(ConfigurationSection section)
     {
         int row = section.getInt("row");
         int column = section.getInt("column");
 
-        if (row > 5 || column > 4) throw new IllegalArgumentException();
+        if (row > 6 || column > 4) throw new IllegalArgumentException();
 
         return row * 9 - column;
     }

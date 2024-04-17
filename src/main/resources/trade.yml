@@ -1,6 +1,9 @@
+cooldowns:
+  trade: 1000
+  accept: 1000
 tradeInventory:
   confirmItem:
-    row: 4
+    row: 6
     column: 4
   placeableSlots:
     1:
@@ -29,4 +32,13 @@ tradeInventory:
       column: 3
     9:
       row: 4
+      column: 4
+    10:
+      row: 5
+      column: 2
+    11:
+      row: 5
+      column: 3
+    12:
+      row: 5
       column: 4

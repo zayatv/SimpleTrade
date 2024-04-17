@@ -57,24 +57,9 @@ public class TradeCmd implements CommandExecutor {
         }
 
         Pair<Player, Player> playerTargetPair = new Pair<>(player, target);
-        boolean outgoingRequest = false;
-        boolean incomingRequest = false;
-        UUID uuid = null;
-
-        for (Pair<Player, Player> pair : plugin.tradeMap.keySet())
-        {
-            if (pair.equalsPair(playerTargetPair))
-            {
-                outgoingRequest = true;
-                break;
-            }
-            if (pair.equalsPair(playerTargetPair.reversed()))
-            {
-                incomingRequest = true;
-                uuid = plugin.tradeMap.get(pair);
-                break;
-            }
-        }
+        boolean outgoingRequest = plugin.tradeMap.containsKey(playerTargetPair);
+        boolean incomingRequest = plugin.tradeMap.containsKey(playerTargetPair.reversed());
+        UUID uuid = plugin.tradeMap.get(playerTargetPair.reversed());
 
         if (incomingRequest)
         {
@@ -82,10 +67,10 @@ public class TradeCmd implements CommandExecutor {
             return true;
         }
 
-        if (!lastSendTradeRequest.containsKey(player) || System.currentTimeMillis() - lastSendTradeRequest.get(player) >= 1000) return false;
+        if (lastSendTradeRequest.containsKey(player) && System.currentTimeMillis() - lastSendTradeRequest.get(player) <= plugin.getConfig().getLong("cooldowns.trade")) return false;
         lastSendTradeRequest.put(player, System.currentTimeMillis());
 
-        if (!outgoingRequest && !incomingRequest) {
+        if (!outgoingRequest) {
             target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&6" + player.getName() + " &ahas sent you a trade request!"));
 
             uuid = UUID.randomUUID();

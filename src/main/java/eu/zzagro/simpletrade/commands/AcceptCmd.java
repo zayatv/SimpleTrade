@@ -8,11 +8,15 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class AcceptCmd implements CommandExecutor {
 
     private final SimpleTrade plugin;
+
+    private Map<Player, Long> lastSendTradeRequest = new HashMap<>();
 
     public AcceptCmd(SimpleTrade plugin) {
         this.plugin = plugin;
@@ -23,6 +27,10 @@ public class AcceptCmd implements CommandExecutor {
         if (!(sender instanceof Player)) return false;
 
         Player target = (Player) sender;
+
+        if (lastSendTradeRequest.containsKey(target) && System.currentTimeMillis() - lastSendTradeRequest.get(target) <= plugin.getConfig().getLong("cooldowns.accept")) return false;
+        lastSendTradeRequest.put(target, System.currentTimeMillis());
+
         Player player = null;
         UUID uuid = null;
         Pair<Player, Player> playerTargetPair = new Pair<>(null, null);
@@ -39,8 +47,8 @@ public class AcceptCmd implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase(uuid.toString())) {
             Bukkit.getScheduler().cancelTask(TradeCmd.task.getTaskId());
-            plugin.tradeInv.openTargetInv(player);
-            plugin.tradeInv.openPlayerInv(target);
+            plugin.tradeInv.openTradeInventory(player);
+            plugin.tradeInv.openTradeInventory(target);
             plugin.openTrades.put(player, target);
             plugin.openTrades.put(target, player);
             plugin.tradeMap.remove(playerTargetPair);
