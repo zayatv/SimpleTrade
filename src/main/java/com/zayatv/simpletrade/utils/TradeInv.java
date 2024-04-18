@@ -1,14 +1,14 @@
-package eu.zzagro.simpletrade.utils;
+package com.zayatv.simpletrade.utils;
 
-import eu.zzagro.simpletrade.SimpleTrade;
+import com.zayatv.simpletrade.SimpleTrade;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class TradeInv {
@@ -22,14 +22,13 @@ public class TradeInv {
     public void openTradeInventory(Player player) {
         Inventory inv = Bukkit.createInventory(player, 54, "Trade Menu");
 
-        ItemStack unplaceableItem = plugin.metaManager.unplaceableItem;
-        ItemMeta unplaceableMeta = plugin.metaManager.getUnplaceableMeta();
+        ItemStack unplaceableItem = plugin.metaManager.getUnplaceableItem();
         for (int i = 0; i < inv.getSize(); i++)
         {
             inv.setItem(i, unplaceableItem);
         }
 
-        ItemStack emptyItem = plugin.metaManager.emptyItem;
+        ItemStack emptyItem = plugin.metaManager.getEmptyItem();
         int[] emptySlots = getEmptySlots();
         for (int emptySlot : emptySlots) {
             inv.setItem(emptySlot, emptyItem);
@@ -37,16 +36,13 @@ public class TradeInv {
 
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.confirmItem");
 
-        ItemStack confirmItem = plugin.metaManager.confirmItem;
-        ItemMeta confirmMeta = plugin.metaManager.getConfirmMeta();
+        ItemStack confirmItem = plugin.metaManager.getConfirmItem();
         inv.setItem(getIndex(section), confirmItem);
 
-        ItemStack waitingItem = plugin.metaManager.waitingItem;
-        ItemMeta waitingMeta = plugin.metaManager.getWaitingMeta();
+        ItemStack waitingItem = plugin.metaManager.getWaitingItem();
         inv.setItem(getIndexMirrored(section), waitingItem);
 
-        ItemStack cancelTradeItem = plugin.metaManager.cancelTradeItem;
-        ItemMeta cancelTradeMeta = plugin.metaManager.getCancelTradeMeta();
+        ItemStack cancelTradeItem = plugin.metaManager.getCancelTradeItem();
         inv.setItem(49, cancelTradeItem);
 
         player.openInventory(inv);
@@ -55,7 +51,6 @@ public class TradeInv {
     private int[] getEmptySlots()
     {
         List<Integer> emptySlots = new ArrayList<>();
-
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.placeableSlots");
 
         for (String path : section.getKeys(false))
@@ -68,8 +63,43 @@ public class TradeInv {
             emptySlots.add(inventoryIndex);
             emptySlots.add(inventoryIndexMirrored);
         }
-
         return emptySlots.stream().mapToInt(i -> i).toArray();
+    }
+
+    public int[] getEmptySlotsPlayer()
+    {
+        List<Integer> emptySlots = new ArrayList<>();
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.placeableSlots");
+
+        for (String path : section.getKeys(false))
+        {
+            ConfigurationSection pathSection = section.getConfigurationSection(path);
+
+            int inventoryIndex = getIndex(pathSection);
+
+            emptySlots.add(inventoryIndex);
+        }
+        int[] arr = emptySlots.stream().mapToInt(i -> i).toArray();
+        Arrays.sort(arr);
+        return arr;
+    }
+
+    public int[] getEmptySlotsTarget()
+    {
+        List<Integer> emptySlots = new ArrayList<>();
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.placeableSlots");
+
+        for (String path : section.getKeys(false))
+        {
+            ConfigurationSection pathSection = section.getConfigurationSection(path);
+
+            int inventoryIndex = getIndexMirrored(pathSection);
+
+            emptySlots.add(inventoryIndex);
+        }
+        int[] arr = emptySlots.stream().mapToInt(i -> i).toArray();
+        Arrays.sort(arr);
+        return arr;
     }
 
     public int getIndex(ConfigurationSection section)

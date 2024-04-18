@@ -1,7 +1,7 @@
-package eu.zzagro.simpletrade.commands;
+package com.zayatv.simpletrade.commands;
 
-import eu.zzagro.simpletrade.SimpleTrade;
-import eu.zzagro.simpletrade.utils.Pair;
+import com.zayatv.simpletrade.utils.Pair;
+import com.zayatv.simpletrade.SimpleTrade;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.Bukkit;
@@ -40,19 +40,19 @@ public class TradeCmd implements CommandExecutor {
 
         if (args.length != 1)
         {
-            player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cUsage: /trade <player>"));
+            player.sendMessage(plugin.prefix + plugin.color("&cUsage: /trade <player>"));
             return false;
         }
 
         if (Bukkit.getPlayerExact(args[0]) == null) {
-            player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&6" + args[0] + " &cisn't online or doesn't exist!"));
+            player.sendMessage(plugin.prefix + plugin.color("&6" + args[0] + " &cisn't online or doesn't exist!"));
             return false;
         }
 
         Player target = Bukkit.getPlayerExact(args[0]);
 
         if (target == player) {
-            player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYou can't trade with yourself!"));
+            player.sendMessage(plugin.prefix + plugin.color("&cYou can't trade with yourself!"));
             return false;
         }
 
@@ -64,6 +64,7 @@ public class TradeCmd implements CommandExecutor {
         if (incomingRequest)
         {
             player.performCommand("accept " + uuid);
+            lastSendTradeRequest.put(player, System.currentTimeMillis());
             return true;
         }
 
@@ -71,19 +72,19 @@ public class TradeCmd implements CommandExecutor {
         lastSendTradeRequest.put(player, System.currentTimeMillis());
 
         if (!outgoingRequest) {
-            target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&6" + player.getName() + " &ahas sent you a trade request!"));
+            target.sendMessage(plugin.prefix + plugin.color("&6" + player.getName() + " &ahas sent you a trade request!"));
 
             uuid = UUID.randomUUID();
             plugin.tradeMap.put(playerTargetPair, uuid);
 
             target.spigot().sendMessage(tradeText(uuid));
-            player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&aYou've sent a trade request to &6" + target.getName()));
+            player.sendMessage(plugin.prefix + plugin.color("&aYou've sent a trade request to &6" + target.getName()));
 
             tradeExpired(playerTargetPair, 20*15);
             return true;
         }
 
-        player.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYou already have an outgoing trade request to this player!"));
+        player.sendMessage(plugin.prefix + plugin.color("&cYou already have an outgoing trade request to this player!"));
 
         return false;
     }
@@ -92,8 +93,8 @@ public class TradeCmd implements CommandExecutor {
     {
         task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
             plugin.tradeMap.remove(pair);
-            pair.getKey().sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cYour trade request to &6" + pair.getValue().getName() + " &cexpired!"));
-            pair.getValue().sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cThe trade request from &6" + pair.getKey().getName() + " &cexpired!"));
+            pair.getKey().sendMessage(plugin.prefix + plugin.color("&cYour trade request to &6" + pair.getValue().getName() + " &cexpired!"));
+            pair.getValue().sendMessage(plugin.prefix + plugin.color("&cThe trade request from &6" + pair.getKey().getName() + " &cexpired!"));
         }, time);
     }
 
@@ -114,7 +115,7 @@ public class TradeCmd implements CommandExecutor {
         deny.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to deny").create()));
 
         TextComponent text = new TextComponent();
-        text.setText(SimpleTrade.color(SimpleTrade.prefix + "&6Do you want to accept? "));
+        text.setText(plugin.color(plugin.prefix + "&6Do you want to accept? "));
         text.addExtra(accept);
         accept.addExtra(deny);
 

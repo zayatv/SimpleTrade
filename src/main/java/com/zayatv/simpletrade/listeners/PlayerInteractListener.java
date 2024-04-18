@@ -1,15 +1,10 @@
-package eu.zzagro.simpletrade.listeners;
+package com.zayatv.simpletrade.listeners;
 
-import eu.zzagro.simpletrade.SimpleTrade;
-import eu.zzagro.simpletrade.commands.TradeCmd;
-import org.bukkit.Bukkit;
+import com.zayatv.simpletrade.SimpleTrade;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class PlayerInteractListener implements Listener {
 

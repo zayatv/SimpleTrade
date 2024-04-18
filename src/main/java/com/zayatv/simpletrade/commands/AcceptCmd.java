@@ -1,7 +1,7 @@
-package eu.zzagro.simpletrade.commands;
+package com.zayatv.simpletrade.commands;
 
-import eu.zzagro.simpletrade.SimpleTrade;
-import eu.zzagro.simpletrade.utils.Pair;
+import com.zayatv.simpletrade.SimpleTrade;
+import com.zayatv.simpletrade.utils.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -43,7 +43,7 @@ public class AcceptCmd implements CommandExecutor {
         }
 
         if (player == null) return false;
-        if (args.length != 1) target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cUsage: /accept <tradeUUID>"));
+        if (args.length != 1) target.sendMessage(plugin.prefix + plugin.color("&cUsage: /accept <tradeUUID>"));
 
         if (args[0].equalsIgnoreCase(uuid.toString())) {
             Bukkit.getScheduler().cancelTask(TradeCmd.task.getTaskId());
@@ -53,7 +53,7 @@ public class AcceptCmd implements CommandExecutor {
             plugin.openTrades.put(target, player);
             plugin.tradeMap.remove(playerTargetPair);
         } else {
-            target.sendMessage(SimpleTrade.prefix + SimpleTrade.color("&cThat trade doesn't exist"));
+            target.sendMessage(plugin.prefix + plugin.color("&cThat trade doesn't exist"));
         }
 
         return false;

@@ -1,12 +1,12 @@
-package eu.zzagro.simpletrade;
+package com.zayatv.simpletrade;
 
-import eu.zzagro.simpletrade.commands.AcceptCmd;
-import eu.zzagro.simpletrade.commands.TradeCmd;
-import eu.zzagro.simpletrade.listeners.InventoryClickListener;
-import eu.zzagro.simpletrade.listeners.PlayerInteractListener;
-import eu.zzagro.simpletrade.utils.MetaManager;
-import eu.zzagro.simpletrade.utils.Pair;
-import eu.zzagro.simpletrade.utils.TradeInv;
+import com.zayatv.simpletrade.commands.AcceptCmd;
+import com.zayatv.simpletrade.commands.TradeCmd;
+import com.zayatv.simpletrade.listeners.InventoryClickListener;
+import com.zayatv.simpletrade.listeners.PlayerInteractListener;
+import com.zayatv.simpletrade.utils.MetaManager;
+import com.zayatv.simpletrade.utils.Pair;
+import com.zayatv.simpletrade.utils.TradeInv;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -20,16 +20,16 @@ import java.util.UUID;
 
 public final class SimpleTrade extends JavaPlugin {
 
-    public static String prefix = ChatColor.translateAlternateColorCodes('&', "&bSimpleTrade &7>> ");
-
-    private File configFile;
-    private FileConfiguration config;
+    public String prefix = ChatColor.translateAlternateColorCodes('&', "&bSimpleTrade &7>> ");
 
     public Map<Pair<Player, Player>, UUID> tradeMap = new HashMap<>();
     public Map<Player, Player> openTrades = new HashMap<>();
 
     public TradeInv tradeInv = new TradeInv(this);
     public MetaManager metaManager = new MetaManager();
+
+    private File configFile;
+    private FileConfiguration config;
 
     @Override
     public void onEnable() {
@@ -47,7 +47,7 @@ public final class SimpleTrade extends JavaPlugin {
         saveResource("trade.yml", false);
     }
 
-    public static String color(String message) {
+    public String color(String message) {
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 

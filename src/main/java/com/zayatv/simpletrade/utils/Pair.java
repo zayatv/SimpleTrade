@@ -1,4 +1,4 @@
-package eu.zzagro.simpletrade.utils;
+package com.zayatv.simpletrade.utils;
 
 public class Pair<T, U> {
 
