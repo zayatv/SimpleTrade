@@ -11,9 +11,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class InventoryClickListener implements Listener {
@@ -56,6 +54,15 @@ public class InventoryClickListener implements Listener {
         int[] placeableSlotsPlayer = plugin.tradeInv.getEmptySlotsPlayer();
         int[] placeableSlotsTarget = plugin.tradeInv.getEmptySlotsTarget();
 
+        ItemStack confirmItem = plugin.metaManager.getConfirmItem();
+        ItemStack readyItem = plugin.metaManager.getReadyItem();
+        ItemStack waitingItem = plugin.metaManager.getWaitingItem();
+        ItemStack cancelItem = plugin.metaManager.getCancelTradeItem();
+
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.items.tradeStatusItem.position");
+        int playerConfirmSlot = plugin.tradeInv.getIndex(section);
+        int targetConfirmSlot = plugin.tradeInv.getIndexMirrored(section);
+
         if (e.getClickedInventory() instanceof PlayerInventory) {
             for (int i = 0; i < placeableSlotsPlayer.length; i++)
             {
@@ -65,13 +72,10 @@ public class InventoryClickListener implements Listener {
                 break;
             }
             player.getInventory().setItem(e.getSlot(), null);
+            isPlayerReady.put(target, false);
+            target.getOpenInventory().getTopInventory().setItem(targetConfirmSlot, confirmItem);
             return;
         }
-
-        ItemStack confirmItem = plugin.metaManager.getConfirmItem();
-        ItemStack readyItem = plugin.metaManager.getReadyItem();
-        ItemStack waitingItem = plugin.metaManager.getWaitingItem();
-        ItemStack cancelItem = plugin.metaManager.getCancelTradeItem();
 
         if (e.getSlot() == 49 && e.getCurrentItem().isSimilar(cancelItem))
         {
@@ -79,10 +83,6 @@ public class InventoryClickListener implements Listener {
             returnItems(player, target);
             return;
         }
-
-        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.confirmItem");
-        int playerConfirmSlot = plugin.tradeInv.getIndex(section);
-        int targetConfirmSlot = plugin.tradeInv.getIndexMirrored(section);
 
         if (e.getSlot() == playerConfirmSlot && e.getCurrentItem().isSimilar(confirmItem)) {
             isPlayerReady.put(player, true);

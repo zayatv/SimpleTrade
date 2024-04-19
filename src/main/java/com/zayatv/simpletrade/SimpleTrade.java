@@ -26,7 +26,7 @@ public final class SimpleTrade extends JavaPlugin {
     public Map<Player, Player> openTrades = new HashMap<>();
 
     public TradeInv tradeInv = new TradeInv(this);
-    public MetaManager metaManager = new MetaManager();
+    public MetaManager metaManager = new MetaManager(this);
 
     private File configFile;
     private FileConfiguration config;

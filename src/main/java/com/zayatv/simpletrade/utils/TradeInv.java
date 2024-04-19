@@ -34,13 +34,16 @@ public class TradeInv {
             inv.setItem(emptySlot, emptyItem);
         }
 
-        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.confirmItem");
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.items.tradeStatusItem.position");
 
         ItemStack confirmItem = plugin.metaManager.getConfirmItem();
         inv.setItem(getIndex(section), confirmItem);
 
         ItemStack waitingItem = plugin.metaManager.getWaitingItem();
         inv.setItem(getIndexMirrored(section), waitingItem);
+
+        ItemStack econTradeItem = plugin.metaManager.getEconTradeItem();
+        inv.setItem(getIndex(plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.position")), econTradeItem);
 
         ItemStack cancelTradeItem = plugin.metaManager.getCancelTradeItem();
         inv.setItem(49, cancelTradeItem);

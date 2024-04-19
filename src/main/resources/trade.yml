@@ -2,9 +2,33 @@ cooldowns:
   trade: 1000
   accept: 1000
 tradeInventory:
-  confirmItem:
-    row: 6
-    column: 4
+  items:
+    unplaceableItem:
+      material: GRAY_STAINED_GLASS_PANE
+      displayName: ''
+    cancelTradeItem:
+      material: BARRIER
+      displayName: '&cCancel Trade'
+    econTradeItem:
+      Material: GOLD_NUGGET
+      enabled: true
+      displayName: '&6Trade Economy'
+      position:
+        row: 6
+        column: 1
+    tradeStatusItem:
+      position:
+        row: 6
+        column: 4
+      confirmTradeItem:
+        material: GREEN_STAINED_GLASS_PANE
+        displayName: '&aConfirm trade'
+      waitingItem:
+        material: YELLOW_STAINED_GLASS_PANE
+        displayName: '&cWaiting for other players confirmation!'
+      readyItem:
+        material: GREEN_STAINED_GLASS_PANE
+        displayName: '&aConfirmed'
   placeableSlots:
     1:
       row: 2
