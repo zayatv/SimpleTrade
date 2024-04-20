@@ -1,5 +1,7 @@
 package com.zayatv.simpletrade;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.zayatv.simpletrade.commands.AcceptCmd;
 import com.zayatv.simpletrade.commands.TradeCmd;
 import com.zayatv.simpletrade.listeners.InventoryClickListener;
@@ -22,6 +24,8 @@ public final class SimpleTrade extends JavaPlugin {
 
     public String prefix = ChatColor.translateAlternateColorCodes('&', "&bSimpleTrade &7>> ");
 
+    public ProtocolManager protocolManager;
+
     public Map<Pair<Player, Player>, UUID> tradeMap = new HashMap<>();
     public Map<Player, Player> openTrades = new HashMap<>();
 
@@ -33,6 +37,8 @@ public final class SimpleTrade extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        protocolManager = ProtocolLibrary.getProtocolManager();
+
         getCommand("trade").setExecutor(new TradeCmd(this));
         getCommand("accept").setExecutor(new AcceptCmd(this));
 
