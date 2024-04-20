@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -152,6 +153,29 @@ public class InventoryClickListener implements Listener {
 
         if (!e.getView().getTitle().equalsIgnoreCase("Trade Menu") && !plugin.openTrades.containsKey(player)) return;
         if (inEconomyMenu.contains(player)) return;
+
+        Player target = plugin.openTrades.get(player);
+
+        if (target == null) return;
+
+        returnItems(player, target);
+
+        plugin.openTrades.remove(player, target);
+        plugin.openTrades.remove(target, player);
+        isPlayerReady.remove(player);
+        isPlayerReady.remove(target);
+        playerItems.remove(player);
+        playerItems.remove(target);
+        inEconomyMenu.remove(target);
+        if (target.getOpenInventory().getTitle().equalsIgnoreCase("Trade Menu")) target.getOpenInventory().close();
+    }
+
+    @EventHandler
+    public void onLeave(PlayerQuitEvent e)
+    {
+        Player player = e.getPlayer();
+
+        if (!plugin.openTrades.containsKey(player)) return;
 
         Player target = plugin.openTrades.get(player);
 
