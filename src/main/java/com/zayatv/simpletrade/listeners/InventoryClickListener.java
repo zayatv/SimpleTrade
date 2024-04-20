@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -20,6 +21,7 @@ public class InventoryClickListener implements Listener {
 
     private Map<Player, Boolean> isPlayerReady = new HashMap<>();
     private Map<Player, List<ItemStack>> playerItems = new HashMap<>();
+    private List<Player> inEconomyMenu = new ArrayList<>();
 
     public InventoryClickListener(SimpleTrade plugin) {
         this.plugin = plugin;
@@ -46,18 +48,6 @@ public class InventoryClickListener implements Listener {
         Inventory tradeInvTarget = target.getOpenInventory().getTopInventory();
         ItemStack clickedItem = e.getCurrentItem();
 
-        if (!isPlayerReady.containsKey(player) || !isPlayerReady.containsKey(target))
-        {
-            isPlayerReady.put(player, false);
-            isPlayerReady.put(target, false);
-        }
-
-        if (!playerItems.containsKey(player) || !playerItems.containsKey(target))
-        {
-            playerItems.put(player, new ArrayList<>());
-            playerItems.put(target, new ArrayList<>());
-        }
-
         int[] placeableSlotsPlayer = plugin.tradeInv.getEmptySlotsPlayer();
         int[] placeableSlotsTarget = plugin.tradeInv.getEmptySlotsTarget();
 
@@ -71,13 +61,6 @@ public class InventoryClickListener implements Listener {
         int targetConfirmSlot = plugin.tradeInv.getIndexMirrored(section);
 
         if (e.getClickedInventory() instanceof PlayerInventory) {
-//            for (int i = 0; i < placeableSlotsPlayer.length; i++)
-//            {
-//                if (tradeInvPlayer.getContents()[placeableSlotsPlayer[i]] != null) continue;
-//                tradeInvPlayer.setItem(placeableSlotsPlayer[i], clickedItem);
-//                tradeInvTarget.setItem(placeableSlotsTarget[i], clickedItem);
-//                break;
-//            }
             playerItems.get(player).add(clickedItem);
             updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
             player.getInventory().setItem(e.getSlot(), null);
@@ -101,6 +84,7 @@ public class InventoryClickListener implements Listener {
             isPlayerReady.put(player, false);
             target.getOpenInventory().getTopInventory().setItem(targetConfirmSlot, waitingItem);
             e.getView().getTopInventory().setItem(playerConfirmSlot, confirmItem);
+            return;
         }
 
         if (isPlayerReady.get(target) && isPlayerReady.get(player)) {
@@ -109,18 +93,44 @@ public class InventoryClickListener implements Listener {
             return;
         }
 
-        for (int i = 0; i < placeableSlotsPlayer.length; i++)
-        {
-            if (e.getSlot() != placeableSlotsPlayer[i]) continue;
-            if (e.getCurrentItem() == null) continue;
+        for (int j = 0; j < placeableSlotsPlayer.length; j++) {
+            if (e.getSlot() == placeableSlotsPlayer[j] && e.getCurrentItem() != null) break;
+            if (j == placeableSlotsPlayer.length - 1) return;
+        }
 
-            playerItems.get(player).remove(i);
+        playerItems.get(player).remove(clickedItem);
+        updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
+        player.getInventory().addItem(clickedItem);
+    }
+
+    @EventHandler
+    public void onOpen(InventoryOpenEvent e)
+    {
+        Player player = (Player) e.getPlayer();
+
+        if (!e.getView().getTitle().equalsIgnoreCase("Trade Menu")) return;
+        Player target = plugin.openTrades.get(player);
+        if (inEconomyMenu.contains(player))
+        {
+            inEconomyMenu.remove(player);
+
+            Inventory tradeInvPlayer = player.getOpenInventory().getTopInventory();
+            Inventory tradeInvTarget = target.getOpenInventory().getTopInventory();
+
+            int[] placeableSlotsPlayer = plugin.tradeInv.getEmptySlotsPlayer();
+            int[] placeableSlotsTarget = plugin.tradeInv.getEmptySlotsTarget();
 
             updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
-
-            player.getInventory().addItem(clickedItem);
             return;
         }
+
+        if (target == null) return;
+
+        isPlayerReady.put(player, false);
+        isPlayerReady.put(target, false);
+
+        playerItems.put(player, new ArrayList<>());
+        playerItems.put(target, new ArrayList<>());
     }
 
     @EventHandler
@@ -129,6 +139,7 @@ public class InventoryClickListener implements Listener {
         Player player = (Player) e.getPlayer();
 
         if (!e.getView().getTitle().equalsIgnoreCase("Trade Menu") && !plugin.openTrades.containsKey(player)) return;
+        if (inEconomyMenu.contains(player)) return;
 
         Player target = plugin.openTrades.get(player);
 
@@ -143,13 +154,14 @@ public class InventoryClickListener implements Listener {
         isPlayerReady.remove(target);
         playerItems.remove(player);
         playerItems.remove(target);
+        inEconomyMenu.remove(target);
         if (target.getOpenInventory().getTitle().equalsIgnoreCase("Trade Menu")) target.getOpenInventory().close();
     }
 
     private void updateTradeInvItems(Player player, Inventory playerInv, Inventory targetInv, int[] playerSlots, int[] targetSlots)
     {
         List<ItemStack> items = playerItems.get(player);
-        for (int i = 0; i < playerSlots.length; i++)
+        for (int i = 0; i < items.size(); i++)
         {
             playerInv.setItem(playerSlots[i], items.get(i));
             targetInv.setItem(targetSlots[i], items.get(i));
@@ -164,6 +176,8 @@ public class InventoryClickListener implements Listener {
         playerItems.remove(target);
         plugin.openTrades.remove(player, target);
         plugin.openTrades.remove(target, player);
+        inEconomyMenu.remove(player);
+        inEconomyMenu.remove(target);
         player.getOpenInventory().close();
         target.getOpenInventory().close();
     }
@@ -194,6 +208,7 @@ public class InventoryClickListener implements Listener {
     private void openSign(Player player)
     {
         SignGUIAPI signGUIAPI = new SignGUIAPI(event -> plugin.tradeInv.openTradeInventory(event.getPlayer()), Arrays.asList("First Line"), player.getUniqueId(), plugin);
+        inEconomyMenu.add(player);
         signGUIAPI.open();
     }
 }

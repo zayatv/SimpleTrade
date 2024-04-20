@@ -17,8 +17,6 @@ import java.util.UUID;
 
 public class TradeCmd implements CommandExecutor {
 
-    private UUID uuid;
-
     private Map<Player, Long> lastSendTradeRequest = new HashMap<>();
 
     public static BukkitTask task;

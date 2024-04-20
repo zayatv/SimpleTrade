@@ -29,8 +29,8 @@ public final class SimpleTrade extends JavaPlugin {
     public Map<Pair<Player, Player>, UUID> tradeMap = new HashMap<>();
     public Map<Player, Player> openTrades = new HashMap<>();
 
-    public TradeInv tradeInv = new TradeInv(this);
-    public MetaManager metaManager = new MetaManager(this);
+    public TradeInv tradeInv;
+    public MetaManager metaManager;
 
     private File configFile;
     private FileConfiguration config;
@@ -46,6 +46,9 @@ public final class SimpleTrade extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InventoryClickListener(this), this);
 
         createConfig();
+
+        metaManager = new MetaManager(this);
+        tradeInv = new TradeInv(this);
     }
 
     @Override

@@ -65,7 +65,7 @@ public class MetaManager {
 
     public ItemStack getEconTradeItem()
     {
-        econTradeItem.setItemMeta(econTradeMeta);
+        econTradeItem.setItemMeta(getEconTradeMeta());
         return econTradeItem;
     }
 
@@ -123,7 +123,7 @@ public class MetaManager {
             econTradeMeta = econTradeItem.getItemMeta();
             econTradeMeta.setDisplayName(plugin.color(getItemName("econTradeItem")));
         }
-        return readyMeta;
+        return econTradeMeta;
     }
 
     private Material getMaterial(String itemName)

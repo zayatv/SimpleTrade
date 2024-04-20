@@ -5,12 +5,12 @@ tradeInventory:
   items:
     unplaceableItem:
       material: GRAY_STAINED_GLASS_PANE
-      displayName: ''
+      displayName: ' '
     cancelTradeItem:
       material: BARRIER
       displayName: '&cCancel Trade'
     econTradeItem:
-      Material: GOLD_NUGGET
+      material: GOLD_NUGGET
       enabled: true
       displayName: '&6Trade Economy'
       position:
