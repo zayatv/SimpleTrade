@@ -1,5 +1,8 @@
 package com.zayatv.simpletrade.listeners;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.BlockPosition;
 import com.zayatv.simpletrade.SimpleTrade;
 import com.zayatv.simpletrade.utils.SignGUIAPI;
 import org.bukkit.configuration.ConfigurationSection;

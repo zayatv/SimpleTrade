@@ -79,6 +79,7 @@ public class SignGUIAPI {
         BlockPosition position = new BlockPosition(x_start, y_start, z_start);
 
         openSign.getBlockPositionModifier().write(0, position);
+        openSign.getBooleans().write(0, true);
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             try {
@@ -88,8 +89,8 @@ public class SignGUIAPI {
             }
         }, 3L);
 
-        //Bukkit.getPluginManager().registerEvents(this.listener, plugin);
-        //registerSignUpdateListener();
+        Bukkit.getPluginManager().registerEvents(this.listener, plugin);
+        registerSignUpdateListener();
     }
 
     private class LeaveListener implements Listener {
