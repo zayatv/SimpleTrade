@@ -88,8 +88,8 @@ public class SignGUIAPI {
             }
         }, 3L);
 
-        Bukkit.getPluginManager().registerEvents(this.listener, plugin);
-        registerSignUpdateListener();
+        //Bukkit.getPluginManager().registerEvents(this.listener, plugin);
+        //registerSignUpdateListener();
     }
 
     private class LeaveListener implements Listener {

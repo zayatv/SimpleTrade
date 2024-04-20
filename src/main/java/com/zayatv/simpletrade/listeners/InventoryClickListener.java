@@ -55,24 +55,35 @@ public class InventoryClickListener implements Listener {
         ItemStack readyItem = plugin.metaManager.getReadyItem();
         ItemStack waitingItem = plugin.metaManager.getWaitingItem();
         ItemStack cancelItem = plugin.metaManager.getCancelTradeItem();
+        ItemStack econTradeItem = plugin.metaManager.getEconTradeItem();
 
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.items.tradeStatusItem.position");
         int playerConfirmSlot = plugin.tradeInv.getIndex(section);
         int targetConfirmSlot = plugin.tradeInv.getIndexMirrored(section);
 
+        int econTradeSlot = plugin.tradeInv.getIndex(plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.position"));
+
         if (e.getClickedInventory() instanceof PlayerInventory) {
+            if (playerItems.get(player).size() >= placeableSlotsPlayer.length) return;
             playerItems.get(player).add(clickedItem);
             updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
             player.getInventory().setItem(e.getSlot(), null);
             isPlayerReady.put(target, false);
-            target.getOpenInventory().getTopInventory().setItem(targetConfirmSlot, confirmItem);
+            target.getOpenInventory().getTopInventory().setItem(playerConfirmSlot, confirmItem);
             return;
         }
 
         if (e.getSlot() == 49 && e.getCurrentItem().isSimilar(cancelItem))
         {
-            closeInv(player, target);
             returnItems(player, target);
+            closeInv(player, target);
+            return;
+        }
+
+        if (e.getSlot() == econTradeSlot && e.getCurrentItem().isSimilar(econTradeItem))
+        {
+            System.out.println("Econ trade");
+            openSign(player);
             return;
         }
 
@@ -99,6 +110,7 @@ public class InventoryClickListener implements Listener {
         }
 
         playerItems.get(player).remove(clickedItem);
+        System.out.println(playerItems.get(player));
         updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
         player.getInventory().addItem(clickedItem);
     }
@@ -145,8 +157,7 @@ public class InventoryClickListener implements Listener {
 
         if (target == null) return;
 
-        returnItemsPlayer(player, plugin.tradeInv.getEmptySlotsPlayer(), e.getView().getTopInventory());
-        returnItemsPlayer(target, plugin.tradeInv.getEmptySlotsPlayer(), target.getOpenInventory().getTopInventory());
+        returnItems(player, target);
 
         plugin.openTrades.remove(player, target);
         plugin.openTrades.remove(target, player);
@@ -161,8 +172,14 @@ public class InventoryClickListener implements Listener {
     private void updateTradeInvItems(Player player, Inventory playerInv, Inventory targetInv, int[] playerSlots, int[] targetSlots)
     {
         List<ItemStack> items = playerItems.get(player);
-        for (int i = 0; i < items.size(); i++)
+        for (int i = 0; i < playerSlots.length; i++)
         {
+            if (items.size() <= i)
+            {
+                playerInv.setItem(playerSlots[i], null);
+                targetInv.setItem(targetSlots[i], null);
+                continue;
+            }
             playerInv.setItem(playerSlots[i], items.get(i));
             targetInv.setItem(targetSlots[i], items.get(i));
         }
@@ -182,32 +199,24 @@ public class InventoryClickListener implements Listener {
         target.getOpenInventory().close();
     }
 
-    private void returnItemsPlayer(Player player, int[] slots, Inventory inv)
-    {
-        if (!player.getOpenInventory().getTitle().equalsIgnoreCase("Trade Menu")) return;
-
-        for (int slot : slots) {
-            if (inv.getItem(slot) == null) continue;
-            player.getInventory().addItem(inv.getItem(slot));
-            inv.setItem(slot, null);
-        }
-    }
-
     private void returnItems(Player player, Player target)
     {
-        returnItemsPlayer(player, plugin.tradeInv.getEmptySlotsPlayer(), player.getOpenInventory().getTopInventory());
-        returnItemsPlayer(target, plugin.tradeInv.getEmptySlotsPlayer(), target.getOpenInventory().getTopInventory());
+        player.getInventory().addItem(playerItems.get(player).toArray(new ItemStack[playerItems.get(player).size()]));
+        target.getInventory().addItem(playerItems.get(target).toArray(new ItemStack[playerItems.get(target).size()]));
     }
 
     private void tradeItems(Player player, Player target)
     {
-        returnItemsPlayer(player, plugin.tradeInv.getEmptySlotsTarget(), player.getOpenInventory().getTopInventory());
-        returnItemsPlayer(target, plugin.tradeInv.getEmptySlotsTarget(), target.getOpenInventory().getTopInventory());
+        player.getInventory().addItem(playerItems.get(target).toArray(new ItemStack[playerItems.get(target).size()]));
+        target.getInventory().addItem(playerItems.get(player).toArray(new ItemStack[playerItems.get(player).size()]));
     }
 
     private void openSign(Player player)
     {
-        SignGUIAPI signGUIAPI = new SignGUIAPI(event -> plugin.tradeInv.openTradeInventory(event.getPlayer()), Arrays.asList("First Line"), player.getUniqueId(), plugin);
+        SignGUIAPI signGUIAPI = new SignGUIAPI(event -> {
+            plugin.tradeInv.openTradeInventory(event.getPlayer());
+            System.out.println(event.getLines());
+        }, Arrays.asList("First Line", "Second Line", "Third Line", "Fourth Line"), player.getUniqueId(), plugin);
         inEconomyMenu.add(player);
         signGUIAPI.open();
     }
