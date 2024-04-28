@@ -1,10 +1,8 @@
 package com.zayatv.simpletrade.listeners;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.BlockPosition;
 import com.zayatv.simpletrade.SimpleTrade;
-import com.zayatv.simpletrade.utils.SignGUIAPI;
+import de.rapha149.signgui.SignGUI;
+import de.rapha149.signgui.SignGUIAction;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,6 +14,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.ChatPaginator;
 
 import java.util.*;
 
@@ -240,11 +240,74 @@ public class InventoryClickListener implements Listener {
 
     private void openSign(Player player)
     {
-        SignGUIAPI signGUIAPI = new SignGUIAPI(event -> {
-            plugin.tradeInv.openTradeInventory(event.getPlayer());
-            System.out.println(event.getLines());
-        }, Arrays.asList("First Line", "Second Line", "Third Line", "Fourth Line"), player.getUniqueId(), plugin);
+        SignGUI gui = SignGUI.builder().setLine(0, "Type amount below").setHandler((p, result) -> {
+            String input = result.getLineWithoutColor(1);
+            if (!isInteger(input, 10))
+                return List.of(
+                        SignGUIAction.runSync(plugin, () -> {
+                            plugin.tradeInv.openTradeInventory(player);
+                        })
+                );
+
+            int amount = Integer.parseInt(input);
+
+            String econDisplayName = getEconomyDisplayName(amount);
+            String econLore = getEconomyLore(amount);
+
+            ItemStack econItem = plugin.metaManager.getEconItem();
+            ItemMeta econMeta = plugin.metaManager.getEconMeta();
+            econMeta.setDisplayName(econDisplayName);
+            econMeta.setLore(loreSplit(econLore, plugin.getConfig().getInt("tradeInventory.items.econTradeItem.econTrade.loreLineLength")));
+            econItem.setItemMeta(econMeta);
+
+            playerItems.get(player).add(econItem);
+
+            return List.of(
+                    SignGUIAction.runSync(plugin, () -> {
+                        plugin.tradeInv.openTradeInventory(player);
+                    })
+            );
+        }).build();
         inEconomyMenu.add(player);
-        signGUIAPI.open();
+        gui.open(player);
+    }
+
+    private String getEconomyDisplayName(int amount)
+    {
+        ConfigurationSection econTradeSection = plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.econTrade");
+        String econName = econTradeSection.getString("economyName");
+        String econDisplayName = econTradeSection.getString("displayName");
+
+        econDisplayName = econDisplayName.replace("${economyName}", econName).replace("${amount}", String.valueOf(amount));
+
+        return econDisplayName;
+    }
+
+    private String getEconomyLore(int amount)
+    {
+        ConfigurationSection econTradeSection = plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.econTrade");
+        String econName = econTradeSection.getString("economyName");
+        String econLore = econTradeSection.getString("lore");
+
+        econLore = econLore.replace("${economyName}", econName).replace("${amount}", String.valueOf(amount));
+
+        return econLore;
+    }
+
+    private List<String> loreSplit(String lore, int lineLength)
+    {
+        return Arrays.asList(lore.split("(?<=\\G.{" + lineLength + "})"));
+    }
+
+    public boolean isInteger(String s, int radix) {
+        if(s.isEmpty()) return false;
+        for(int i = 0; i < s.length(); i++) {
+            if(i == 0 && s.charAt(i) == '-') {
+                if(s.length() == 1) return false;
+                else continue;
+            }
+            if(Character.digit(s.charAt(i),radix) < 0) return false;
+        }
+        return true;
     }
 }

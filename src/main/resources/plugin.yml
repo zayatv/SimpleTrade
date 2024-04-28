@@ -3,8 +3,6 @@ version: ${project.version}
 main: com.zayatv.simpletrade.SimpleTrade
 api-version: 1.20
 author: ZayaTV
-depend:
-  - ProtocolLib
 description: Trade Plugin
 commands:
   trade:

@@ -17,6 +17,7 @@ public class MetaManager {
     private ItemStack readyItem;
     private ItemStack emptyItem = new ItemStack(Material.AIR);
     private ItemStack econTradeItem;
+    private ItemStack econItem;
 
     public MetaManager(SimpleTrade plugin) {
         this.plugin = plugin;
@@ -26,6 +27,7 @@ public class MetaManager {
         waitingItem = new ItemStack(getMaterial("tradeStatusItem.waitingItem"), 1);
         readyItem = new ItemStack(getMaterial("tradeStatusItem.readyItem"), 1);
         econTradeItem = new ItemStack(getMaterial("econTradeItem"), 1);
+        econItem = new ItemStack(getMaterial("econTradeItem.econTrade"), 1);
     }
 
     public ItemStack getUnplaceableItem()
@@ -69,12 +71,19 @@ public class MetaManager {
         return econTradeItem;
     }
 
+    public ItemStack getEconItem()
+    {
+        econItem.setItemMeta(getEconMeta());
+        return econItem;
+    }
+
     private ItemMeta unplaceableMeta;
     private ItemMeta cancelTradeMeta;
     private ItemMeta confirmMeta;
     private ItemMeta waitingMeta;
     private ItemMeta readyMeta;
     private ItemMeta econTradeMeta;
+    private ItemMeta econMeta;
 
     public ItemMeta getUnplaceableMeta() {
         if (unplaceableMeta == null) {
@@ -124,6 +133,16 @@ public class MetaManager {
             econTradeMeta.setDisplayName(plugin.color(getItemName("econTradeItem")));
         }
         return econTradeMeta;
+    }
+
+    public ItemMeta getEconMeta()
+    {
+        if (econMeta == null)
+        {
+            econMeta = econItem.getItemMeta();
+            econMeta.setDisplayName(plugin.color(getItemName("econTradeItem.econTrade")));
+        }
+        return econMeta;
     }
 
     private Material getMaterial(String itemName)

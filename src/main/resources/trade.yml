@@ -10,6 +10,12 @@ tradeInventory:
       material: BARRIER
       displayName: '&cCancel Trade'
     econTradeItem:
+      econTrade:
+        material: GOLD_NUGGET
+        economyName: 'Coins'
+        displayName: '&6Trading ${economyName}'
+        lore: '&6${economyName}: ${amount}'
+        loreLineLength: 25
       material: GOLD_NUGGET
       enabled: true
       displayName: '&6Trade Economy'

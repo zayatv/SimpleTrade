@@ -1,7 +1,5 @@
 package com.zayatv.simpletrade;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import com.zayatv.simpletrade.commands.AcceptCmd;
 import com.zayatv.simpletrade.commands.TradeCmd;
 import com.zayatv.simpletrade.listeners.InventoryClickListener;
@@ -10,21 +8,18 @@ import com.zayatv.simpletrade.utils.MetaManager;
 import com.zayatv.simpletrade.utils.Pair;
 import com.zayatv.simpletrade.utils.TradeInv;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public final class SimpleTrade extends JavaPlugin {
 
     public String prefix = ChatColor.translateAlternateColorCodes('&', "&bSimpleTrade &7>> ");
-
-    public ProtocolManager protocolManager;
 
     public Map<Pair<Player, Player>, UUID> tradeMap = new HashMap<>();
     public Map<Player, Player> openTrades = new HashMap<>();
@@ -37,8 +32,6 @@ public final class SimpleTrade extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        protocolManager = ProtocolLibrary.getProtocolManager();
-
         getCommand("trade").setExecutor(new TradeCmd(this));
         getCommand("accept").setExecutor(new AcceptCmd(this));
 
