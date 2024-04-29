@@ -3,6 +3,8 @@ package com.zayatv.simpletrade.listeners;
 import com.zayatv.simpletrade.SimpleTrade;
 import de.rapha149.signgui.SignGUI;
 import de.rapha149.signgui.SignGUIAction;
+import de.rapha149.signgui.SignGUIResult;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,6 +17,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.ChatPaginator;
 
 import java.util.*;
@@ -27,8 +31,11 @@ public class InventoryClickListener implements Listener {
     private Map<Player, List<ItemStack>> playerItems = new HashMap<>();
     private List<Player> inEconomyMenu = new ArrayList<>();
 
+    private NamespacedKey econKey;
+
     public InventoryClickListener(SimpleTrade plugin) {
         this.plugin = plugin;
+        econKey = new NamespacedKey(plugin, "economy");
     }
 
     @EventHandler
@@ -228,51 +235,78 @@ public class InventoryClickListener implements Listener {
 
     private void returnItems(Player player, Player target)
     {
-        player.getInventory().addItem(playerItems.get(player).toArray(new ItemStack[playerItems.get(player).size()]));
-        target.getInventory().addItem(playerItems.get(target).toArray(new ItemStack[playerItems.get(target).size()]));
+        //player.getInventory().addItem(playerItems.get(player).toArray(new ItemStack[playerItems.get(player).size()]));
+        //target.getInventory().addItem(playerItems.get(target).toArray(new ItemStack[playerItems.get(target).size()]));\
+
+        List<ItemStack> playerItemsList = playerItems.get(player);
+        List<ItemStack> targetItemsList = playerItems.get(target);
+
+        itemsToInventory(player, playerItemsList);
+        itemsToInventory(target, targetItemsList);
     }
 
     private void tradeItems(Player player, Player target)
     {
-        player.getInventory().addItem(playerItems.get(target).toArray(new ItemStack[playerItems.get(target).size()]));
-        target.getInventory().addItem(playerItems.get(player).toArray(new ItemStack[playerItems.get(player).size()]));
+        //player.getInventory().addItem(playerItems.get(target).toArray(new ItemStack[playerItems.get(target).size()]));
+        //target.getInventory().addItem(playerItems.get(player).toArray(new ItemStack[playerItems.get(player).size()]));
+        List<ItemStack> playerItemsList = playerItems.get(player);
+        List<ItemStack> targetItemsList = playerItems.get(target);
+
+        itemsToInventory(target, playerItemsList);
+        itemsToInventory(player, targetItemsList);
+    }
+
+    private void itemsToInventory(Player player, List<ItemStack> items)
+    {
+        for (ItemStack item : items)
+        {
+            if (!item.getItemMeta().getPersistentDataContainer().has(econKey, PersistentDataType.LONG)) {
+                player.getInventory().addItem(item);
+                continue;
+            }
+
+            long econAmount = item.getItemMeta().getPersistentDataContainer().get(econKey, PersistentDataType.LONG);
+            player.sendMessage(plugin.color("&6You got: " + econAmount + " Coins"));
+        }
     }
 
     private void openSign(Player player)
     {
         SignGUI gui = SignGUI.builder().setLine(0, "Type amount below").setHandler((p, result) -> {
             String input = result.getLineWithoutColor(1);
-            if (!isInteger(input, 10))
+            long amount;
+            try {
+                amount = Long.parseLong(input);
+            } catch (Exception e) {
                 return List.of(
-                        SignGUIAction.runSync(plugin, () -> {
-                            plugin.tradeInv.openTradeInventory(player);
-                        })
+                        SignGUIAction.openInventory(plugin, plugin.tradeInv.openTradeInventory(player))
                 );
-
-            int amount = Integer.parseInt(input);
+            }
 
             String econDisplayName = getEconomyDisplayName(amount);
             String econLore = getEconomyLore(amount);
 
             ItemStack econItem = plugin.metaManager.getEconItem();
             ItemMeta econMeta = plugin.metaManager.getEconMeta();
-            econMeta.setDisplayName(econDisplayName);
-            econMeta.setLore(loreSplit(econLore, plugin.getConfig().getInt("tradeInventory.items.econTradeItem.econTrade.loreLineLength")));
+            econMeta.setDisplayName(plugin.color(econDisplayName));
+            econMeta.setLore(loreSplit(plugin.color(econLore), plugin.getConfig().getInt("tradeInventory.items.econTradeItem.econTrade.loreLineLength")));
+
+            PersistentDataContainer pdc = econMeta.getPersistentDataContainer();
+            pdc.set(econKey, PersistentDataType.LONG, amount);
+
             econItem.setItemMeta(econMeta);
 
             playerItems.get(player).add(econItem);
 
             return List.of(
-                    SignGUIAction.runSync(plugin, () -> {
-                        plugin.tradeInv.openTradeInventory(player);
-                    })
+                    SignGUIAction.openInventory(plugin, plugin.tradeInv.openTradeInventory(player))
             );
         }).build();
         inEconomyMenu.add(player);
         gui.open(player);
     }
 
-    private String getEconomyDisplayName(int amount)
+    private String getEconomyDisplayName(long amount)
     {
         ConfigurationSection econTradeSection = plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.econTrade");
         String econName = econTradeSection.getString("economyName");
@@ -283,7 +317,7 @@ public class InventoryClickListener implements Listener {
         return econDisplayName;
     }
 
-    private String getEconomyLore(int amount)
+    private String getEconomyLore(long amount)
     {
         ConfigurationSection econTradeSection = plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.econTrade");
         String econName = econTradeSection.getString("economyName");
@@ -297,17 +331,5 @@ public class InventoryClickListener implements Listener {
     private List<String> loreSplit(String lore, int lineLength)
     {
         return Arrays.asList(lore.split("(?<=\\G.{" + lineLength + "})"));
-    }
-
-    public boolean isInteger(String s, int radix) {
-        if(s.isEmpty()) return false;
-        for(int i = 0; i < s.length(); i++) {
-            if(i == 0 && s.charAt(i) == '-') {
-                if(s.length() == 1) return false;
-                else continue;
-            }
-            if(Character.digit(s.charAt(i),radix) < 0) return false;
-        }
-        return true;
     }
 }
