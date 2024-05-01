@@ -208,14 +208,15 @@ public class InventoryClickListener implements Listener {
         List<ItemStack> items = playerItems.get(player);
         for (int i = 0; i < playerSlots.length; i++)
         {
-            if (items.size() <= i)
+            System.out.println("help");
+            if (i < items.size())
             {
-                playerInv.setItem(playerSlots[i], null);
-                targetInv.setItem(targetSlots[i], null);
+                playerInv.setItem(playerSlots[i], items.get(i));
+                targetInv.setItem(targetSlots[i], items.get(i));
                 continue;
             }
-            playerInv.setItem(playerSlots[i], items.get(i));
-            targetInv.setItem(targetSlots[i], items.get(i));
+            playerInv.setItem(playerSlots[i], null);
+            targetInv.setItem(targetSlots[i], null);
         }
     }
 
@@ -235,9 +236,6 @@ public class InventoryClickListener implements Listener {
 
     private void returnItems(Player player, Player target)
     {
-        //player.getInventory().addItem(playerItems.get(player).toArray(new ItemStack[playerItems.get(player).size()]));
-        //target.getInventory().addItem(playerItems.get(target).toArray(new ItemStack[playerItems.get(target).size()]));\
-
         List<ItemStack> playerItemsList = playerItems.get(player);
         List<ItemStack> targetItemsList = playerItems.get(target);
 
@@ -247,8 +245,6 @@ public class InventoryClickListener implements Listener {
 
     private void tradeItems(Player player, Player target)
     {
-        //player.getInventory().addItem(playerItems.get(target).toArray(new ItemStack[playerItems.get(target).size()]));
-        //target.getInventory().addItem(playerItems.get(player).toArray(new ItemStack[playerItems.get(player).size()]));
         List<ItemStack> playerItemsList = playerItems.get(player);
         List<ItemStack> targetItemsList = playerItems.get(target);
 
