@@ -3,7 +3,7 @@ package com.zayatv.simpletrade.listeners;
 import com.zayatv.simpletrade.SimpleTrade;
 import de.rapha149.signgui.SignGUI;
 import de.rapha149.signgui.SignGUIAction;
-import de.rapha149.signgui.SignGUIResult;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -19,7 +19,6 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.ChatPaginator;
 
 import java.util.*;
 
@@ -91,21 +90,20 @@ public class InventoryClickListener implements Listener {
             return;
         }
 
-        if (e.getSlot() == econTradeSlot && e.getCurrentItem().isSimilar(econTradeItem))
+        if (e.getSlot() == econTradeSlot && e.getCurrentItem().isSimilar(econTradeItem) && plugin.isEconomyTradingEnabled())
         {
-            System.out.println("Econ trade");
+            isPlayerReady.put(player, false);
+            setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
             openSign(player);
             return;
         }
 
         if (e.getSlot() == playerConfirmSlot && e.getCurrentItem().isSimilar(confirmItem)) {
             isPlayerReady.put(player, true);
-            target.getOpenInventory().getTopInventory().setItem(targetConfirmSlot, readyItem);
-            e.getView().getTopInventory().setItem(playerConfirmSlot, readyItem);
+            setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
         } else if (e.getSlot() == playerConfirmSlot && e.getCurrentItem().isSimilar(readyItem)) {
             isPlayerReady.put(player, false);
-            target.getOpenInventory().getTopInventory().setItem(targetConfirmSlot, waitingItem);
-            e.getView().getTopInventory().setItem(playerConfirmSlot, confirmItem);
+            setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
             return;
         }
 
@@ -123,6 +121,13 @@ public class InventoryClickListener implements Listener {
         playerItems.get(player).remove(clickedItem);
         System.out.println(playerItems.get(player));
         updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
+
+        if (clickedItem.getItemMeta().getPersistentDataContainer().has(econKey))
+        {
+            plugin.getEconomy().depositPlayer(player, clickedItem.getItemMeta().getPersistentDataContainer().get(econKey, PersistentDataType.DOUBLE));
+            return;
+        }
+
         player.getInventory().addItem(clickedItem);
     }
 
@@ -137,13 +142,14 @@ public class InventoryClickListener implements Listener {
         {
             inEconomyMenu.remove(player);
 
-            Inventory tradeInvPlayer = player.getOpenInventory().getTopInventory();
+            Inventory tradeInvPlayer = e.getView().getTopInventory();
             Inventory tradeInvTarget = target.getOpenInventory().getTopInventory();
 
             int[] placeableSlotsPlayer = plugin.tradeInv.getEmptySlotsPlayer();
             int[] placeableSlotsTarget = plugin.tradeInv.getEmptySlotsTarget();
 
             updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
+            setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
             return;
         }
 
@@ -208,7 +214,6 @@ public class InventoryClickListener implements Listener {
         List<ItemStack> items = playerItems.get(player);
         for (int i = 0; i < playerSlots.length; i++)
         {
-            System.out.println("help");
             if (i < items.size())
             {
                 playerInv.setItem(playerSlots[i], items.get(i));
@@ -239,8 +244,8 @@ public class InventoryClickListener implements Listener {
         List<ItemStack> playerItemsList = playerItems.get(player);
         List<ItemStack> targetItemsList = playerItems.get(target);
 
-        itemsToInventory(player, playerItemsList);
-        itemsToInventory(target, targetItemsList);
+        itemsToInventory(player, playerItemsList, false);
+        itemsToInventory(target, targetItemsList, false);
     }
 
     private void tradeItems(Player player, Player target)
@@ -248,64 +253,103 @@ public class InventoryClickListener implements Listener {
         List<ItemStack> playerItemsList = playerItems.get(player);
         List<ItemStack> targetItemsList = playerItems.get(target);
 
-        itemsToInventory(target, playerItemsList);
-        itemsToInventory(player, targetItemsList);
+        itemsToInventory(target, playerItemsList, true);
+        itemsToInventory(player, targetItemsList, true);
     }
 
-    private void itemsToInventory(Player player, List<ItemStack> items)
+    private void itemsToInventory(Player player, List<ItemStack> items, boolean sendGainedMsg)
     {
+        String itemsGained = null;
+        double coinsGained = 0;
+
         for (ItemStack item : items)
         {
-            if (!item.getItemMeta().getPersistentDataContainer().has(econKey, PersistentDataType.LONG)) {
+            if (!item.getItemMeta().getPersistentDataContainer().has(econKey, PersistentDataType.DOUBLE)) {
                 player.getInventory().addItem(item);
+
+                if (itemsGained == null) itemsGained = item.getItemMeta().getDisplayName();
+                else itemsGained += ", " + item.getItemMeta().getDisplayName();
+
                 continue;
             }
 
-            long econAmount = item.getItemMeta().getPersistentDataContainer().get(econKey, PersistentDataType.LONG);
-            player.sendMessage(plugin.color("&6You got: " + econAmount + " Coins"));
+            double econAmount = item.getItemMeta().getPersistentDataContainer().get(econKey, PersistentDataType.DOUBLE);
+            plugin.getEconomy().depositPlayer(player, econAmount);
+            coinsGained += econAmount;
         }
+
+        if (!sendGainedMsg) return;
+        if (itemsGained != null) player.sendMessage(plugin.prefix() + plugin.color("&aYou got the following items: " + itemsGained));
+        if (coinsGained > 0.0) player.sendMessage(plugin.prefix() + plugin.color("&6You got: " + coinsGained + " Coins"));
     }
 
     private void openSign(Player player)
     {
         SignGUI gui = SignGUI.builder().setLine(0, "Type amount below").setHandler((p, result) -> {
             String input = result.getLineWithoutColor(1);
-            long amount;
+            double amount = 0;
+            String abbreviation = isAmountAbbreviation(input);
+
             try {
-                amount = Long.parseLong(input);
+                amount = Double.parseDouble(input);
             } catch (Exception e) {
-                return List.of(
-                        SignGUIAction.openInventory(plugin, plugin.tradeInv.getTradeInventory(player))
-                );
+                if (abbreviation == null) return closeSignActions(player);
             }
 
-            String econDisplayName = getEconomyDisplayName(amount);
-            String econLore = getEconomyLore(amount);
+            if (amount == 0)
+            {
+                try {
+                    amount = Double.parseDouble(input.substring(0, input.length() - 1)) * plugin.getConfig().getDouble("tradeInventory.items.econTradeItem.econTrade.abbreviations." + abbreviation);
+                } catch (Exception e) {
+                    return closeSignActions(player);
+                }
+            }
 
-            ItemStack econItem = plugin.metaManager.getEconItem();
-            ItemMeta econMeta = plugin.metaManager.getEconMeta();
-            econMeta.setDisplayName(plugin.color(econDisplayName));
-            econMeta.setLore(loreSplit(plugin.color(econLore), plugin.getConfig().getInt("tradeInventory.items.econTradeItem.econTrade.loreLineLength")));
+            if (amount < 1) return closeSignActions(player);
+            if (!plugin.getEconomy().has(player, amount)) return closeSignActions(player);
 
-            PersistentDataContainer pdc = econMeta.getPersistentDataContainer();
-            pdc.set(econKey, PersistentDataType.LONG, amount);
+            String amountAbbreviation = abbreviation == null ? input : input.substring(0, input.length() - 1) + abbreviation;
+            String econDisplayName = getEconomyDisplayName(amountAbbreviation);
+            String econLore = getEconomyLore(amountAbbreviation);
 
-            econItem.setItemMeta(econMeta);
+            ItemStack econItem = getEconItem(econDisplayName, econLore, amount);
 
             playerItems.get(player).add(econItem);
 
-            return List.of(
-                    SignGUIAction.openInventory(plugin, plugin.tradeInv.getTradeInventory(player))
-//                    SignGUIAction.runSync(plugin, () -> {
-//                        plugin.tradeInv.openTradeInventory(player);
-//                    })
-            );
+            plugin.getEconomy().withdrawPlayer(player, amount);
+
+            isPlayerReady.put(plugin.openTrades.get(player), false);
+            isPlayerReady.put(player, false);
+
+            return closeSignActions(player);
         }).build();
         inEconomyMenu.add(player);
         gui.open(player);
     }
 
-    private String getEconomyDisplayName(long amount)
+    private String isAmountAbbreviation(String input)
+    {
+        List<String> abbreviationKeys = new ArrayList<>(plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.econTrade.abbreviations").getKeys(false));
+        for (String key : abbreviationKeys)
+        {
+            if (input.substring(input.length() - 1).equalsIgnoreCase(key))
+            {
+                return key;
+            }
+        }
+        return null;
+    }
+
+    private List<SignGUIAction> closeSignActions(Player player)
+    {
+        return List.of(
+                SignGUIAction.runSync(plugin, () -> {
+                    plugin.tradeInv.openTradeInventory(player);
+                })
+        );
+    }
+
+    private String getEconomyDisplayName(String amount)
     {
         ConfigurationSection econTradeSection = plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.econTrade");
         String econName = econTradeSection.getString("economyName");
@@ -316,7 +360,7 @@ public class InventoryClickListener implements Listener {
         return econDisplayName;
     }
 
-    private String getEconomyLore(long amount)
+    private String getEconomyLore(String amount)
     {
         ConfigurationSection econTradeSection = plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.econTrade");
         String econName = econTradeSection.getString("economyName");
@@ -330,5 +374,53 @@ public class InventoryClickListener implements Listener {
     private List<String> loreSplit(String lore, int lineLength)
     {
         return Arrays.asList(lore.split("(?<=\\G.{" + lineLength + "})"));
+    }
+
+    private ItemStack getEconItem(String displayName, String lore, double econAmount)
+    {
+        ItemStack item = new ItemStack(Material.matchMaterial(plugin.getConfig().getString("tradeInventory.items.econTradeItem.econTrade.material")), 1);
+        ItemMeta meta = item.getItemMeta();
+
+        meta.setDisplayName(plugin.color(displayName));
+        meta.setLore(loreSplit(plugin.color(lore), plugin.getConfig().getInt("tradeInventory.items.econTradeItem.econTrade.loreLineLength")));
+
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(econKey, PersistentDataType.DOUBLE, econAmount);
+        item.setItemMeta(meta);
+
+        return item;
+    }
+
+    private void setTradeStatusItem(Player player, Player target, Inventory tradeInvPlayer, Inventory tradeInvTarget)
+    {
+        ItemStack confirmItem = plugin.metaManager.getConfirmItem();
+        ItemStack readyItem = plugin.metaManager.getReadyItem();
+        ItemStack waitingItem = plugin.metaManager.getWaitingItem();
+
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.items.tradeStatusItem.position");
+        int playerConfirmSlot = plugin.tradeInv.getIndex(section);
+        int targetConfirmSlot = plugin.tradeInv.getIndexMirrored(section);
+
+        if (isPlayerReady.get(player))
+        {
+            tradeInvPlayer.setItem(playerConfirmSlot, readyItem);
+            tradeInvTarget.setItem(targetConfirmSlot, readyItem);
+        }
+        else
+        {
+            tradeInvPlayer.setItem(playerConfirmSlot, confirmItem);
+            tradeInvTarget.setItem(targetConfirmSlot, waitingItem);
+        }
+
+        if (isPlayerReady.get(target))
+        {
+            tradeInvPlayer.setItem(targetConfirmSlot, readyItem);
+            tradeInvTarget.setItem(playerConfirmSlot, readyItem);
+        }
+        else
+        {
+            tradeInvPlayer.setItem(targetConfirmSlot, waitingItem);
+            tradeInvTarget.setItem(playerConfirmSlot, confirmItem);
+        }
     }
 }

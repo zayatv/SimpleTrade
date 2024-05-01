@@ -4,6 +4,8 @@ main: com.zayatv.simpletrade.SimpleTrade
 api-version: 1.20
 author: ZayaTV
 description: Trade Plugin
+softdepend:
+  - Vault
 commands:
   trade:
   accept:

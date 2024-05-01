@@ -1,31 +1,34 @@
 package com.zayatv.simpletrade;
 
-import com.zayatv.simpletrade.commands.AcceptCmd;
 import com.zayatv.simpletrade.commands.TradeCmd;
 import com.zayatv.simpletrade.listeners.InventoryClickListener;
 import com.zayatv.simpletrade.listeners.PlayerInteractListener;
 import com.zayatv.simpletrade.utils.MetaManager;
 import com.zayatv.simpletrade.utils.Pair;
 import com.zayatv.simpletrade.utils.TradeInv;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.util.*;
 
 public final class SimpleTrade extends JavaPlugin {
 
-    public String prefix = ChatColor.translateAlternateColorCodes('&', "&bSimpleTrade &7>> ");
-
     public Map<Pair<Player, Player>, UUID> tradeMap = new HashMap<>();
     public Map<Player, Player> openTrades = new HashMap<>();
+    public Map<Pair<Player, Player>, BukkitTask> taskMap = new HashMap<>();
 
     public TradeInv tradeInv;
     public MetaManager metaManager;
+
+    private Economy economy = null;
+    private boolean economyTradingEnabled;
 
     private File configFile;
     private FileConfiguration config;
@@ -33,12 +36,14 @@ public final class SimpleTrade extends JavaPlugin {
     @Override
     public void onEnable() {
         getCommand("trade").setExecutor(new TradeCmd(this));
-        getCommand("accept").setExecutor(new AcceptCmd(this));
 
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryClickListener(this), this);
 
         createConfig();
+
+        economyTradingEnabled = getConfig().getBoolean("tradeInventory.items.econTradeItem.enabled");
+        if (!setupEconomy()) economyTradingEnabled = false;
 
         metaManager = new MetaManager(this);
         tradeInv = new TradeInv(this);
@@ -53,6 +58,21 @@ public final class SimpleTrade extends JavaPlugin {
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 
+    public String prefix()
+    {
+        return getMessage("prefix");
+    }
+
+    public String noPerms()
+    {
+        return getMessage("noPermission");
+    }
+
+    public String getMessage(String path)
+    {
+        return color(getConfig().getString("messages." + path));
+    }
+
     public FileConfiguration getConfig() {
         return this.config;
     }
@@ -65,5 +85,27 @@ public final class SimpleTrade extends JavaPlugin {
         }
 
         config = YamlConfiguration.loadConfiguration(configFile);
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        economy = rsp.getProvider();
+        return economy != null;
+    }
+
+    public Economy getEconomy()
+    {
+        return economy;
+    }
+
+    public boolean isEconomyTradingEnabled()
+    {
+        return economyTradingEnabled;
     }
 }

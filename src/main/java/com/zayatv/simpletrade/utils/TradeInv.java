@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 
 public class TradeInv {
 
@@ -46,8 +47,11 @@ public class TradeInv {
         ItemStack waitingItem = plugin.metaManager.getWaitingItem();
         inv.setItem(getIndexMirrored(section), waitingItem);
 
-        ItemStack econTradeItem = plugin.metaManager.getEconTradeItem();
-        inv.setItem(getIndex(plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.position")), econTradeItem);
+        if (plugin.isEconomyTradingEnabled())
+        {
+            ItemStack econTradeItem = plugin.metaManager.getEconTradeItem();
+            inv.setItem(getIndex(plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.position")), econTradeItem);
+        }
 
         ItemStack cancelTradeItem = plugin.metaManager.getCancelTradeItem();
         inv.setItem(49, cancelTradeItem);
@@ -114,7 +118,11 @@ public class TradeInv {
         int row = section.getInt("row");
         int column = section.getInt("column");
 
-        if (row > 6 || column > 4) throw new IllegalArgumentException();
+        if (row > 6 || column > 4)
+        {
+            plugin.getLogger().log(Level.SEVERE, "Your trade inventory index is out of bounds!");
+            throw new IllegalArgumentException();
+        }
 
         return (row - 1) * 9 + column - 1;
     }
@@ -124,7 +132,11 @@ public class TradeInv {
         int row = section.getInt("row");
         int column = section.getInt("column");
 
-        if (row > 6 || column > 4) throw new IllegalArgumentException();
+        if (row > 6 || column > 4)
+        {
+            plugin.getLogger().log(Level.SEVERE, "Your trade inventory index is out of bounds!");
+            throw new IllegalArgumentException();
+        }
 
         return row * 9 - column;
     }

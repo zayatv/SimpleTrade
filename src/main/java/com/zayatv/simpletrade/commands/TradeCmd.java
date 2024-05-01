@@ -18,8 +18,7 @@ import java.util.UUID;
 public class TradeCmd implements CommandExecutor {
 
     private Map<Player, Long> lastSendTradeRequest = new HashMap<>();
-
-    public static BukkitTask task;
+    private Map<Player, Long> lastSendTradeAccept = new HashMap<>();
 
     private final SimpleTrade plugin;
 
@@ -32,25 +31,77 @@ public class TradeCmd implements CommandExecutor {
         if (!(sender instanceof Player)) return false;
         if(!command.getName().equalsIgnoreCase("trade")) return false;
 
+        if (args.length >= 1 && args[0].equalsIgnoreCase("accept"))
+        {
+            Player target = (Player) sender;
+
+            if (!target.hasPermission("simpletrade.trade"))
+            {
+                target.sendMessage(plugin.prefix() + plugin.getMessage("noPermission"));
+                return false;
+            }
+
+            if (args.length != 2)
+            {
+                target.sendMessage(plugin.prefix() + plugin.color("&cUsage: /trade accept <tradeUUID>"));
+                return false;
+            }
+
+            if (lastSendTradeAccept.containsKey(target) && System.currentTimeMillis() - lastSendTradeAccept.get(target) <= plugin.getConfig().getLong("cooldowns.accept")) return false;
+            lastSendTradeAccept.put(target, System.currentTimeMillis());
+
+            Player player = null;
+            UUID uuid = null;
+            Pair<Player, Player> playerTargetPair = new Pair<>(null, null);
+            for (Pair<Player, Player> pair : plugin.tradeMap.keySet())
+            {
+                if (pair.getValue() != target) continue;
+                player = pair.getKey();
+                uuid = plugin.tradeMap.get(pair);
+                playerTargetPair = pair;
+            }
+
+            if (player == null) return false;
+
+            if (args[1].equalsIgnoreCase(uuid.toString())) {
+                BukkitTask task = plugin.taskMap.containsKey(playerTargetPair) ? plugin.taskMap.get(playerTargetPair) : plugin.taskMap.get(playerTargetPair.reversed());
+                Bukkit.getScheduler().cancelTask(task.getTaskId());
+                plugin.openTrades.put(player, target);
+                plugin.openTrades.put(target, player);
+                plugin.tradeMap.remove(playerTargetPair);
+                plugin.tradeInv.openTradeInventory(player);
+                plugin.tradeInv.openTradeInventory(target);
+            } else {
+                target.sendMessage(plugin.prefix() + plugin.getMessage("trade.errorMessages.wrongTradeUUID"));
+                return false;
+            }
+
+            return true;
+        }
+
         Player player = (Player) sender;
 
-        if (!player.hasPermission("simpletrade.trade")) return false;
+        if (!player.hasPermission("simpletrade.trade"))
+        {
+            player.sendMessage(plugin.prefix() + plugin.getMessage("noPermission"));
+            return false;
+        }
 
         if (args.length != 1)
         {
-            player.sendMessage(plugin.prefix + plugin.color("&cUsage: /trade <player>"));
+            player.sendMessage(plugin.prefix() + plugin.color("&cUsage: /trade <player>"));
             return false;
         }
 
         if (Bukkit.getPlayerExact(args[0]) == null) {
-            player.sendMessage(plugin.prefix + plugin.color("&6" + args[0] + " &cisn't online or doesn't exist!"));
+            player.sendMessage(plugin.prefix() + plugin.getMessage("trade.errorMessages.invalidPlayer").replace("${player}", player.getName()));
             return false;
         }
 
         Player target = Bukkit.getPlayerExact(args[0]);
 
         if (target == player) {
-            player.sendMessage(plugin.prefix + plugin.color("&cYou can't trade with yourself!"));
+            player.sendMessage(plugin.prefix() + plugin.getMessage("trade.errorMessages.tradeSelf"));
             return false;
         }
 
@@ -61,7 +112,7 @@ public class TradeCmd implements CommandExecutor {
 
         if (incomingRequest)
         {
-            player.performCommand("accept " + uuid);
+            player.performCommand("trade accept " + uuid);
             lastSendTradeRequest.put(player, System.currentTimeMillis());
             return true;
         }
@@ -70,51 +121,52 @@ public class TradeCmd implements CommandExecutor {
         lastSendTradeRequest.put(player, System.currentTimeMillis());
 
         if (!outgoingRequest) {
-            target.sendMessage(plugin.prefix + plugin.color("&6" + player.getName() + " &ahas sent you a trade request!"));
+            target.sendMessage(plugin.prefix() + plugin.getMessage("trade.received").replace("${player}", player.getName()));
 
             uuid = UUID.randomUUID();
             plugin.tradeMap.put(playerTargetPair, uuid);
 
             target.spigot().sendMessage(tradeText(uuid));
-            player.sendMessage(plugin.prefix + plugin.color("&aYou've sent a trade request to &6" + target.getName()));
+            player.sendMessage(plugin.prefix() + plugin.getMessage("trade.sent").replace("${player}", target.getName()));
 
-            tradeExpired(playerTargetPair, 20*15);
+            tradeExpired(playerTargetPair, (long) (20 * plugin.getConfig().getDouble("cooldowns.secondsUntilTradeExpires")));
             return true;
         }
 
-        player.sendMessage(plugin.prefix + plugin.color("&cYou already have an outgoing trade request to this player!"));
+        player.sendMessage(plugin.prefix() + plugin.getMessage("trade.errorMessages.requestExists").replace("${player}", target.getName()));
 
         return false;
     }
 
-    private void tradeExpired(Pair<Player, Player> pair, int time)
+    private void tradeExpired(Pair<Player, Player> pair, long time)
     {
-        task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+        BukkitTask task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
             plugin.tradeMap.remove(pair);
-            pair.getKey().sendMessage(plugin.prefix + plugin.color("&cYour trade request to &6" + pair.getValue().getName() + " &cexpired!"));
-            pair.getValue().sendMessage(plugin.prefix + plugin.color("&cThe trade request from &6" + pair.getKey().getName() + " &cexpired!"));
+            pair.getKey().sendMessage(plugin.prefix() + plugin.getMessage("trade.expiredTo").replace("${player}", pair.getValue().getName()));
+            pair.getValue().sendMessage(plugin.prefix() + plugin.getMessage("trade.expiredFrom").replace("${player}", pair.getKey().getName()));
         }, time);
+
+        plugin.taskMap.put(pair, task);
     }
 
     private TextComponent tradeText(UUID uuid)
     {
         TextComponent accept = new TextComponent();
-        accept.setText("[ACCEPT] ");
-        accept.setColor(ChatColor.GREEN);
-        accept.setBold(true);
-        accept.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/accept " + uuid));
-        accept.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to accept").create()));
+        accept.setText(plugin.getMessage("trade.tradeText.accept.text"));
+        accept.setBold(plugin.getConfig().getBoolean("messages.trade.tradeText.accept.bold"));
+        accept.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/trade accept " + uuid));
+        accept.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(plugin.getMessage("trade.tradeText.accept.hover")).create()));
 
         TextComponent deny = new TextComponent();
-        deny.setText("[DENY]");
-        deny.setColor(ChatColor.RED);
-        deny.setBold(true);
-        deny.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/deny " + uuid));
-        deny.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to deny").create()));
+        deny.setText(plugin.getMessage("trade.tradeText.deny.text"));
+        deny.setBold(plugin.getConfig().getBoolean("messages.trade.tradeText.deny.bold"));
+        deny.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/trade deny " + uuid));
+        deny.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(plugin.getMessage("trade.tradeText.deny.hover")).create()));
 
         TextComponent text = new TextComponent();
-        text.setText(plugin.color(plugin.prefix + "&6Do you want to accept? "));
+        text.setText(plugin.prefix() + plugin.getMessage("trade.tradeText.text") + " ");
         text.addExtra(accept);
+        text.addExtra(" ");
         accept.addExtra(deny);
 
         return text;
