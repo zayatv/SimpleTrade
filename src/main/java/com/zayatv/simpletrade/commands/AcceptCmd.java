@@ -50,8 +50,8 @@ public class AcceptCmd implements CommandExecutor {
             plugin.openTrades.put(player, target);
             plugin.openTrades.put(target, player);
             plugin.tradeMap.remove(playerTargetPair);
-            player.openInventory(plugin.tradeInv.openTradeInventory(player));
-            target.openInventory(plugin.tradeInv.openTradeInventory(target));
+            plugin.tradeInv.openTradeInventory(player);
+            plugin.tradeInv.openTradeInventory(target);
         } else {
             target.sendMessage(plugin.prefix + plugin.color("&cThat trade doesn't exist"));
         }

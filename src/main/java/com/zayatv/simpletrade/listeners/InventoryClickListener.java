@@ -275,7 +275,7 @@ public class InventoryClickListener implements Listener {
                 amount = Long.parseLong(input);
             } catch (Exception e) {
                 return List.of(
-                        SignGUIAction.openInventory(plugin, plugin.tradeInv.openTradeInventory(player))
+                        SignGUIAction.openInventory(plugin, plugin.tradeInv.getTradeInventory(player))
                 );
             }
 
@@ -295,7 +295,10 @@ public class InventoryClickListener implements Listener {
             playerItems.get(player).add(econItem);
 
             return List.of(
-                    SignGUIAction.openInventory(plugin, plugin.tradeInv.openTradeInventory(player))
+                    SignGUIAction.openInventory(plugin, plugin.tradeInv.getTradeInventory(player))
+//                    SignGUIAction.runSync(plugin, () -> {
+//                        plugin.tradeInv.openTradeInventory(player);
+//                    })
             );
         }).build();
         inEconomyMenu.add(player);

@@ -19,7 +19,11 @@ public class TradeInv {
         this.plugin = plugin;
     }
 
-    public Inventory openTradeInventory(Player player) {
+    public void openTradeInventory(Player player) {
+        player.openInventory(getTradeInventory(player));
+    }
+
+    public Inventory getTradeInventory(Player player) {
         Inventory inv = Bukkit.createInventory(player, 54, "Trade Menu");
 
         ItemStack unplaceableItem = plugin.metaManager.getUnplaceableItem();
