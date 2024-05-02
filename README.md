@@ -6,12 +6,12 @@ This Spigot Minecraft Plugin allows you to trade items and economy with other pl
 This plugin is still in Beta so bugs are to be expected. If you encounter a bug, make sure to report it to get it fixed as soon as possible.
 
 ## Commands
-**/trade <player>**
+**/trade [player]**
 > Sends a trade request to a player or accepts a request if there already is an outgoing request from that player
 
 > Can also be performed by sneak right clicking the player you want to trade with
 
-**/trade accept <tradeUUID>**
+**/trade accept [tradeUUID]**
 > Accepts a trade request
 
 > Will be perfromed by accepting the trade through the trade accept message or by sneak right clicking the player
