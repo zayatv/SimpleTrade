@@ -14,7 +14,7 @@ This plugin is still in Beta so bugs are to be expected. If you encounter a bug,
 **/trade accept [tradeUUID]**
 > Accepts a trade request
 
-> Will be perfromed by accepting the trade through the trade accept message or by sneak right clicking the player
+> Will be performed by accepting the trade through the trade accept message or by sneak right clicking the player
 
 ## Permissions
 **simpletrade.trade**
