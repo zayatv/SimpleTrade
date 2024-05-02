@@ -279,8 +279,8 @@ public class InventoryClickListener implements Listener {
         }
 
         if (!sendGainedMsg) return;
-        if (itemsGained != null) player.sendMessage(plugin.prefix() + plugin.color("&aYou got the following items: " + itemsGained));
-        if (coinsGained > 0.0) player.sendMessage(plugin.prefix() + plugin.color("&6You got: " + coinsGained + " Coins"));
+        if (itemsGained != null) player.sendMessage(plugin.prefix() + plugin.getMessage("trade.itemsGained").replace("${items}", itemsGained));
+        if (coinsGained > 0.0) player.sendMessage(plugin.prefix() + plugin.getMessage("trade.ecoGained").replace("${amount}", String.valueOf(coinsGained)));
     }
 
     private void openSign(Player player)

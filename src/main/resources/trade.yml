@@ -6,6 +6,8 @@ messages:
     received: "&6${player} &ahas sent you a trade request!"
     expiredTo: "&cYour trade request to &6${player} &cexpired!"
     expiredFrom: "&cThe trade request from &6${player} &cexpired!"
+    itemsGained: "&aYou got the following items: ${items}"
+    ecoGained: "&6You got: ${amount} Coins"
     tradeText:
       text: "&6Do you want to accept?"
       accept:
