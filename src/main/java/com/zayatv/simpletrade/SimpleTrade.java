@@ -3,6 +3,7 @@ package com.zayatv.simpletrade;
 import com.zayatv.simpletrade.commands.TradeCmd;
 import com.zayatv.simpletrade.listeners.InventoryClickListener;
 import com.zayatv.simpletrade.listeners.PlayerInteractListener;
+import com.zayatv.simpletrade.utils.ConfigValidator;
 import com.zayatv.simpletrade.utils.MetaManager;
 import com.zayatv.simpletrade.utils.Pair;
 import com.zayatv.simpletrade.utils.TradeInv;
@@ -27,6 +28,8 @@ public final class SimpleTrade extends JavaPlugin {
     public TradeInv tradeInv;
     public MetaManager metaManager;
 
+    private ConfigValidator configValidator;
+
     private Economy economy = null;
     private boolean economyTradingEnabled;
 
@@ -47,6 +50,9 @@ public final class SimpleTrade extends JavaPlugin {
 
         metaManager = new MetaManager(this);
         tradeInv = new TradeInv(this);
+        configValidator = new ConfigValidator(this);
+
+        configValidator.validate();
     }
 
     @Override

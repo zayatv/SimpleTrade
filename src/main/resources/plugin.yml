@@ -6,6 +6,11 @@ author: ZayaTV
 description: Trade Plugin
 softdepend:
   - Vault
+permissions:
+  simpletrade.*:
+    description: ""
+  simpletrade.trade:
+    description: ""
 commands:
   trade:
-  accept:
+    description: ""

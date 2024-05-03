@@ -79,6 +79,48 @@ public class TradeCmd implements CommandExecutor {
             return true;
         }
 
+        if (args.length >= 1 && args[0].equalsIgnoreCase("deny"))
+        {
+            Player target = (Player) sender;
+
+            if (!target.hasPermission("simpletrade.trade"))
+            {
+                target.sendMessage(plugin.prefix() + plugin.getMessage("noPermission"));
+                return false;
+            }
+
+            if (args.length != 2)
+            {
+                target.sendMessage(plugin.prefix() + plugin.color("&cUsage: /trade deny <tradeUUID>"));
+                return false;
+            }
+
+            Player player = null;
+            UUID uuid = null;
+            Pair<Player, Player> playerTargetPair = new Pair<>(null, null);
+            for (Pair<Player, Player> pair : plugin.tradeMap.keySet())
+            {
+                if (pair.getValue() != target) continue;
+                player = pair.getKey();
+                uuid = plugin.tradeMap.get(pair);
+                playerTargetPair = pair;
+            }
+
+            if (player == null) return false;
+
+            if (args[1].equalsIgnoreCase(uuid.toString())) {
+                BukkitTask task = plugin.taskMap.containsKey(playerTargetPair) ? plugin.taskMap.get(playerTargetPair) : plugin.taskMap.get(playerTargetPair.reversed());
+                Bukkit.getScheduler().cancelTask(task.getTaskId());
+                plugin.tradeMap.remove(playerTargetPair);
+                target.sendMessage(plugin.prefix() + plugin.getMessage("trade.denied").replace("${player}", player.getName()));
+            } else {
+                target.sendMessage(plugin.prefix() + plugin.getMessage("trade.errorMessages.wrongTradeUUID"));
+                return false;
+            }
+
+            return true;
+        }
+
         Player player = (Player) sender;
 
         if (!player.hasPermission("simpletrade.trade"))

@@ -285,8 +285,8 @@ public class InventoryClickListener implements Listener {
 
     private void openSign(Player player)
     {
-        SignGUI gui = SignGUI.builder().setLine(0, "Type amount below").setHandler((p, result) -> {
-            String input = result.getLineWithoutColor(1);
+        SignGUI gui = SignGUI.builder().setLines(null, "^^^^^^", "Enter amount", "---------------").setHandler((p, result) -> {
+            String input = result.getLineWithoutColor(0);
             double amount = 0;
             String abbreviation = isAmountAbbreviation(input);
 

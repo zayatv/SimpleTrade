@@ -6,7 +6,7 @@
 
     <groupId>com.zayatv</groupId>
     <artifactId>simpletrade</artifactId>
-    <version>1.0</version>
+    <version>0.91b</version>
     <packaging>jar</packaging>
 
     <name>SimpleTrade</name>

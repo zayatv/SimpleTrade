@@ -8,6 +8,7 @@ messages:
     expiredFrom: "&cThe trade request from &6${player} &cexpired!"
     itemsGained: "&aYou got the following items: ${items}"
     ecoGained: "&6You got: ${amount} Coins"
+    denied: "&cYou denied the trade request from ${player}"
     tradeText:
       text: "&6Do you want to accept?"
       accept:
