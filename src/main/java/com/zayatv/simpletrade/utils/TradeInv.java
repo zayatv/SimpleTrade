@@ -2,22 +2,29 @@ package com.zayatv.simpletrade.utils;
 
 import com.zayatv.simpletrade.SimpleTrade;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 
 public class TradeInv {
 
     private final SimpleTrade plugin;
 
+    public Map<Player, Boolean> isPlayerReady = new HashMap<>();
+    public Map<Player, List<ItemStack>> playerItems = new HashMap<>();
+    public List<Player> inEconomyMenu = new ArrayList<>();
+
+    public NamespacedKey econKey;
+
     public TradeInv(SimpleTrade plugin) {
         this.plugin = plugin;
+        econKey = new NamespacedKey(plugin, "economy");
     }
 
     public void openTradeInventory(Player player) {
@@ -57,6 +64,113 @@ public class TradeInv {
         inv.setItem(49, cancelTradeItem);
 
         return inv;
+    }
+
+    public void closeInv(Player player, Player target)
+    {
+        isPlayerReady.remove(player);
+        isPlayerReady.remove(target);
+        playerItems.remove(player);
+        playerItems.remove(target);
+        plugin.openTrades.remove(player, target);
+        plugin.openTrades.remove(target, player);
+        inEconomyMenu.remove(player);
+        inEconomyMenu.remove(target);
+        player.getOpenInventory().close();
+        target.getOpenInventory().close();
+    }
+
+    public void updateTradeInvItems(Player player, Inventory playerInv, Inventory targetInv, int[] playerSlots, int[] targetSlots)
+    {
+        List<ItemStack> items = playerItems.get(player);
+        for (int i = 0; i < playerSlots.length; i++)
+        {
+            if (i < items.size())
+            {
+                playerInv.setItem(playerSlots[i], items.get(i));
+                targetInv.setItem(targetSlots[i], items.get(i));
+                continue;
+            }
+            playerInv.setItem(playerSlots[i], null);
+            targetInv.setItem(targetSlots[i], null);
+        }
+    }
+
+    public void returnItems(Player player, Player target)
+    {
+        List<ItemStack> playerItemsList = playerItems.get(player);
+        List<ItemStack> targetItemsList = playerItems.get(target);
+
+        itemsToInventory(player, playerItemsList, false);
+        itemsToInventory(target, targetItemsList, false);
+    }
+
+    public void tradeItems(Player player, Player target)
+    {
+        List<ItemStack> playerItemsList = plugin.tradeInv.playerItems.get(player);
+        List<ItemStack> targetItemsList = plugin.tradeInv.playerItems.get(target);
+
+        plugin.tradeInv.itemsToInventory(target, playerItemsList, true);
+        plugin.tradeInv.itemsToInventory(player, targetItemsList, true);
+    }
+
+    public void itemsToInventory(Player player, List<ItemStack> items, boolean sendGainedMsg)
+    {
+        String itemsGained = null;
+        double coinsGained = 0;
+
+        for (ItemStack item : items)
+        {
+            if (!item.getItemMeta().getPersistentDataContainer().has(econKey, PersistentDataType.DOUBLE)) {
+                player.getInventory().addItem(item);
+
+                if (itemsGained == null) itemsGained = item.getItemMeta().getDisplayName();
+                else itemsGained += ", " + item.getItemMeta().getDisplayName();
+
+                continue;
+            }
+
+            double econAmount = item.getItemMeta().getPersistentDataContainer().get(econKey, PersistentDataType.DOUBLE);
+            plugin.getEconomy().depositPlayer(player, econAmount);
+            coinsGained += econAmount;
+        }
+
+        if (!sendGainedMsg) return;
+        if (itemsGained != null) player.sendMessage(plugin.prefix() + plugin.getMessage("trade.itemsGained").replace("${items}", itemsGained));
+        if (coinsGained > 0.0) player.sendMessage(plugin.prefix() + plugin.getMessage("trade.ecoGained").replace("${amount}", String.valueOf(coinsGained)));
+    }
+
+    public void setTradeStatusItem(Player player, Player target, Inventory tradeInvPlayer, Inventory tradeInvTarget)
+    {
+        ItemStack confirmItem = plugin.metaManager.getConfirmItem();
+        ItemStack readyItem = plugin.metaManager.getReadyItem();
+        ItemStack waitingItem = plugin.metaManager.getWaitingItem();
+
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.items.tradeStatusItem.position");
+        int playerConfirmSlot = plugin.tradeInv.getIndex(section);
+        int targetConfirmSlot = plugin.tradeInv.getIndexMirrored(section);
+
+        if (isPlayerReady.get(player))
+        {
+            tradeInvPlayer.setItem(playerConfirmSlot, readyItem);
+            tradeInvTarget.setItem(targetConfirmSlot, readyItem);
+        }
+        else
+        {
+            tradeInvPlayer.setItem(playerConfirmSlot, confirmItem);
+            tradeInvTarget.setItem(targetConfirmSlot, waitingItem);
+        }
+
+        if (isPlayerReady.get(target))
+        {
+            tradeInvPlayer.setItem(targetConfirmSlot, readyItem);
+            tradeInvTarget.setItem(playerConfirmSlot, readyItem);
+        }
+        else
+        {
+            tradeInvPlayer.setItem(targetConfirmSlot, waitingItem);
+            tradeInvTarget.setItem(playerConfirmSlot, confirmItem);
+        }
     }
 
     private int[] getEmptySlots()

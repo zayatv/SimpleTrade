@@ -1,8 +1,7 @@
 package com.zayatv.simpletrade;
 
 import com.zayatv.simpletrade.commands.TradeCmd;
-import com.zayatv.simpletrade.listeners.InventoryClickListener;
-import com.zayatv.simpletrade.listeners.PlayerInteractListener;
+import com.zayatv.simpletrade.listeners.*;
 import com.zayatv.simpletrade.utils.ConfigValidator;
 import com.zayatv.simpletrade.utils.MetaManager;
 import com.zayatv.simpletrade.utils.Pair;
@@ -38,11 +37,6 @@ public final class SimpleTrade extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        getCommand("trade").setExecutor(new TradeCmd(this));
-
-        getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
-        getServer().getPluginManager().registerEvents(new InventoryClickListener(this), this);
-
         createConfig();
 
         economyTradingEnabled = getConfig().getBoolean("tradeInventory.items.econTradeItem.enabled");
@@ -53,6 +47,14 @@ public final class SimpleTrade extends JavaPlugin {
         configValidator = new ConfigValidator(this);
 
         configValidator.validate();
+
+        getCommand("trade").setExecutor(new TradeCmd(this));
+
+        getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
+        getServer().getPluginManager().registerEvents(new InventoryClickListener(this), this);
+        getServer().getPluginManager().registerEvents(new InventoryOpenListener(this), this);
+        getServer().getPluginManager().registerEvents(new InventoryCloseListener(this), this);
     }
 
     @Override

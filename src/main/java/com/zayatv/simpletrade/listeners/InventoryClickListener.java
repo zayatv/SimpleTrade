@@ -26,15 +26,8 @@ public class InventoryClickListener implements Listener {
 
     private final SimpleTrade plugin;
 
-    private Map<Player, Boolean> isPlayerReady = new HashMap<>();
-    private Map<Player, List<ItemStack>> playerItems = new HashMap<>();
-    private List<Player> inEconomyMenu = new ArrayList<>();
-
-    private NamespacedKey econKey;
-
     public InventoryClickListener(SimpleTrade plugin) {
         this.plugin = plugin;
-        econKey = new NamespacedKey(plugin, "economy");
     }
 
     @EventHandler
@@ -74,42 +67,42 @@ public class InventoryClickListener implements Listener {
         int econTradeSlot = plugin.tradeInv.getIndex(plugin.getConfig().getConfigurationSection("tradeInventory.items.econTradeItem.position"));
 
         if (e.getClickedInventory() instanceof PlayerInventory) {
-            if (playerItems.get(player).size() >= placeableSlotsPlayer.length) return;
-            playerItems.get(player).add(clickedItem);
-            updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
+            if (plugin.tradeInv.playerItems.get(player).size() >= placeableSlotsPlayer.length) return;
+            plugin.tradeInv.playerItems.get(player).add(clickedItem);
+            plugin.tradeInv.updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
             player.getInventory().setItem(e.getSlot(), null);
-            isPlayerReady.put(target, false);
+            plugin.tradeInv.isPlayerReady.put(target, false);
             target.getOpenInventory().getTopInventory().setItem(playerConfirmSlot, confirmItem);
             return;
         }
 
         if (e.getSlot() == 49 && e.getCurrentItem().isSimilar(cancelItem))
         {
-            returnItems(player, target);
-            closeInv(player, target);
+            plugin.tradeInv.returnItems(player, target);
+            plugin.tradeInv.closeInv(player, target);
             return;
         }
 
         if (e.getSlot() == econTradeSlot && e.getCurrentItem().isSimilar(econTradeItem) && plugin.isEconomyTradingEnabled())
         {
-            isPlayerReady.put(player, false);
-            setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
+            plugin.tradeInv.isPlayerReady.put(player, false);
+            plugin.tradeInv.setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
             openSign(player);
             return;
         }
 
         if (e.getSlot() == playerConfirmSlot && e.getCurrentItem().isSimilar(confirmItem)) {
-            isPlayerReady.put(player, true);
-            setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
+            plugin.tradeInv.isPlayerReady.put(player, true);
+            plugin.tradeInv.setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
         } else if (e.getSlot() == playerConfirmSlot && e.getCurrentItem().isSimilar(readyItem)) {
-            isPlayerReady.put(player, false);
-            setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
+            plugin.tradeInv.isPlayerReady.put(player, false);
+            plugin.tradeInv.setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
             return;
         }
 
-        if (isPlayerReady.get(target) && isPlayerReady.get(player)) {
-            tradeItems(player, target);
-            closeInv(player, target);
+        if (plugin.tradeInv.isPlayerReady.get(target) && plugin.tradeInv.isPlayerReady.get(player)) {
+            plugin.tradeInv.tradeItems(player, target);
+            plugin.tradeInv.closeInv(player, target);
             return;
         }
 
@@ -118,169 +111,17 @@ public class InventoryClickListener implements Listener {
             if (j == placeableSlotsPlayer.length - 1) return;
         }
 
-        playerItems.get(player).remove(clickedItem);
-        System.out.println(playerItems.get(player));
-        updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
+        plugin.tradeInv.playerItems.get(player).remove(clickedItem);
+        System.out.println(plugin.tradeInv.playerItems.get(player));
+        plugin.tradeInv.updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
 
-        if (clickedItem.getItemMeta().getPersistentDataContainer().has(econKey))
+        if (clickedItem.getItemMeta().getPersistentDataContainer().has(plugin.tradeInv.econKey))
         {
-            plugin.getEconomy().depositPlayer(player, clickedItem.getItemMeta().getPersistentDataContainer().get(econKey, PersistentDataType.DOUBLE));
+            plugin.getEconomy().depositPlayer(player, clickedItem.getItemMeta().getPersistentDataContainer().get(plugin.tradeInv.econKey, PersistentDataType.DOUBLE));
             return;
         }
 
         player.getInventory().addItem(clickedItem);
-    }
-
-    @EventHandler
-    public void onOpen(InventoryOpenEvent e)
-    {
-        Player player = (Player) e.getPlayer();
-
-        if (!e.getView().getTitle().equalsIgnoreCase("Trade Menu")) return;
-        Player target = plugin.openTrades.get(player);
-        if (inEconomyMenu.contains(player))
-        {
-            inEconomyMenu.remove(player);
-
-            Inventory tradeInvPlayer = e.getView().getTopInventory();
-            Inventory tradeInvTarget = target.getOpenInventory().getTopInventory();
-
-            int[] placeableSlotsPlayer = plugin.tradeInv.getEmptySlotsPlayer();
-            int[] placeableSlotsTarget = plugin.tradeInv.getEmptySlotsTarget();
-
-            updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
-            setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
-            return;
-        }
-
-        if (target == null) return;
-
-        isPlayerReady.put(player, false);
-        isPlayerReady.put(target, false);
-
-        playerItems.put(player, new ArrayList<>());
-        playerItems.put(target, new ArrayList<>());
-    }
-
-    @EventHandler
-    public void onClose(InventoryCloseEvent e)
-    {
-        Player player = (Player) e.getPlayer();
-
-        if (!e.getView().getTitle().equalsIgnoreCase("Trade Menu") && !plugin.openTrades.containsKey(player)) return;
-        if (inEconomyMenu.contains(player)) return;
-
-        Player target = plugin.openTrades.get(player);
-
-        if (target == null) return;
-
-        returnItems(player, target);
-
-        plugin.openTrades.remove(player, target);
-        plugin.openTrades.remove(target, player);
-        isPlayerReady.remove(player);
-        isPlayerReady.remove(target);
-        playerItems.remove(player);
-        playerItems.remove(target);
-        inEconomyMenu.remove(target);
-        if (target.getOpenInventory().getTitle().equalsIgnoreCase("Trade Menu")) target.getOpenInventory().close();
-    }
-
-    @EventHandler
-    public void onLeave(PlayerQuitEvent e)
-    {
-        Player player = e.getPlayer();
-
-        if (!plugin.openTrades.containsKey(player)) return;
-
-        Player target = plugin.openTrades.get(player);
-
-        if (target == null) return;
-
-        returnItems(player, target);
-
-        plugin.openTrades.remove(player, target);
-        plugin.openTrades.remove(target, player);
-        isPlayerReady.remove(player);
-        isPlayerReady.remove(target);
-        playerItems.remove(player);
-        playerItems.remove(target);
-        inEconomyMenu.remove(target);
-        if (target.getOpenInventory().getTitle().equalsIgnoreCase("Trade Menu")) target.getOpenInventory().close();
-    }
-
-    private void updateTradeInvItems(Player player, Inventory playerInv, Inventory targetInv, int[] playerSlots, int[] targetSlots)
-    {
-        List<ItemStack> items = playerItems.get(player);
-        for (int i = 0; i < playerSlots.length; i++)
-        {
-            if (i < items.size())
-            {
-                playerInv.setItem(playerSlots[i], items.get(i));
-                targetInv.setItem(targetSlots[i], items.get(i));
-                continue;
-            }
-            playerInv.setItem(playerSlots[i], null);
-            targetInv.setItem(targetSlots[i], null);
-        }
-    }
-
-    private void closeInv(Player player, Player target)
-    {
-        isPlayerReady.remove(player);
-        isPlayerReady.remove(target);
-        playerItems.remove(player);
-        playerItems.remove(target);
-        plugin.openTrades.remove(player, target);
-        plugin.openTrades.remove(target, player);
-        inEconomyMenu.remove(player);
-        inEconomyMenu.remove(target);
-        player.getOpenInventory().close();
-        target.getOpenInventory().close();
-    }
-
-    private void returnItems(Player player, Player target)
-    {
-        List<ItemStack> playerItemsList = playerItems.get(player);
-        List<ItemStack> targetItemsList = playerItems.get(target);
-
-        itemsToInventory(player, playerItemsList, false);
-        itemsToInventory(target, targetItemsList, false);
-    }
-
-    private void tradeItems(Player player, Player target)
-    {
-        List<ItemStack> playerItemsList = playerItems.get(player);
-        List<ItemStack> targetItemsList = playerItems.get(target);
-
-        itemsToInventory(target, playerItemsList, true);
-        itemsToInventory(player, targetItemsList, true);
-    }
-
-    private void itemsToInventory(Player player, List<ItemStack> items, boolean sendGainedMsg)
-    {
-        String itemsGained = null;
-        double coinsGained = 0;
-
-        for (ItemStack item : items)
-        {
-            if (!item.getItemMeta().getPersistentDataContainer().has(econKey, PersistentDataType.DOUBLE)) {
-                player.getInventory().addItem(item);
-
-                if (itemsGained == null) itemsGained = item.getItemMeta().getDisplayName();
-                else itemsGained += ", " + item.getItemMeta().getDisplayName();
-
-                continue;
-            }
-
-            double econAmount = item.getItemMeta().getPersistentDataContainer().get(econKey, PersistentDataType.DOUBLE);
-            plugin.getEconomy().depositPlayer(player, econAmount);
-            coinsGained += econAmount;
-        }
-
-        if (!sendGainedMsg) return;
-        if (itemsGained != null) player.sendMessage(plugin.prefix() + plugin.getMessage("trade.itemsGained").replace("${items}", itemsGained));
-        if (coinsGained > 0.0) player.sendMessage(plugin.prefix() + plugin.getMessage("trade.ecoGained").replace("${amount}", String.valueOf(coinsGained)));
     }
 
     private void openSign(Player player)
@@ -314,16 +155,16 @@ public class InventoryClickListener implements Listener {
 
             ItemStack econItem = getEconItem(econDisplayName, econLore, amount);
 
-            playerItems.get(player).add(econItem);
+            plugin.tradeInv.playerItems.get(player).add(econItem);
 
             plugin.getEconomy().withdrawPlayer(player, amount);
 
-            isPlayerReady.put(plugin.openTrades.get(player), false);
-            isPlayerReady.put(player, false);
+            plugin.tradeInv.isPlayerReady.put(plugin.openTrades.get(player), false);
+            plugin.tradeInv.isPlayerReady.put(player, false);
 
             return closeSignActions(player);
         }).build();
-        inEconomyMenu.add(player);
+        plugin.tradeInv.inEconomyMenu.add(player);
         gui.open(player);
     }
 
@@ -385,42 +226,9 @@ public class InventoryClickListener implements Listener {
         meta.setLore(loreSplit(plugin.color(lore), plugin.getConfig().getInt("tradeInventory.items.econTradeItem.econTrade.loreLineLength")));
 
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        pdc.set(econKey, PersistentDataType.DOUBLE, econAmount);
+        pdc.set(plugin.tradeInv.econKey, PersistentDataType.DOUBLE, econAmount);
         item.setItemMeta(meta);
 
         return item;
-    }
-
-    private void setTradeStatusItem(Player player, Player target, Inventory tradeInvPlayer, Inventory tradeInvTarget)
-    {
-        ItemStack confirmItem = plugin.metaManager.getConfirmItem();
-        ItemStack readyItem = plugin.metaManager.getReadyItem();
-        ItemStack waitingItem = plugin.metaManager.getWaitingItem();
-
-        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory.items.tradeStatusItem.position");
-        int playerConfirmSlot = plugin.tradeInv.getIndex(section);
-        int targetConfirmSlot = plugin.tradeInv.getIndexMirrored(section);
-
-        if (isPlayerReady.get(player))
-        {
-            tradeInvPlayer.setItem(playerConfirmSlot, readyItem);
-            tradeInvTarget.setItem(targetConfirmSlot, readyItem);
-        }
-        else
-        {
-            tradeInvPlayer.setItem(playerConfirmSlot, confirmItem);
-            tradeInvTarget.setItem(targetConfirmSlot, waitingItem);
-        }
-
-        if (isPlayerReady.get(target))
-        {
-            tradeInvPlayer.setItem(targetConfirmSlot, readyItem);
-            tradeInvTarget.setItem(playerConfirmSlot, readyItem);
-        }
-        else
-        {
-            tradeInvPlayer.setItem(targetConfirmSlot, waitingItem);
-            tradeInvTarget.setItem(playerConfirmSlot, confirmItem);
-        }
     }
 }
