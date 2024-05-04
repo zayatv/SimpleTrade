@@ -16,6 +16,11 @@ This plugin is still in Beta so bugs are to be expected. If you encounter a bug,
 
 > Will be performed by accepting the trade through the trade accept message or by sneak right clicking the player
 
+**/trade deny [tradeUUID]**
+> Denies a trade request
+
+> Will be performed by denying the trade through the received trade message
+
 ## Permissions
 **simpletrade.trade**
 > Allows players to trade
