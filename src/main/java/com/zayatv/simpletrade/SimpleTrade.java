@@ -50,7 +50,7 @@ public final class SimpleTrade extends JavaPlugin {
 
         getCommand("trade").setExecutor(new TradeCmd(this));
 
-        getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerPickupItemListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryClickListener(this), this);
@@ -80,6 +80,11 @@ public final class SimpleTrade extends JavaPlugin {
     public String getMessage(String path)
     {
         return color(getConfig().getString("messages." + path));
+    }
+
+    public List<String> getBlacklistedItems()
+    {
+        return getConfig().getStringList("tradeInventory.blacklistedItems");
     }
 
     public FileConfiguration getConfig() {

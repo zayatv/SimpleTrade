@@ -68,6 +68,7 @@ public class InventoryClickListener implements Listener {
 
         if (e.getClickedInventory() instanceof PlayerInventory) {
             if (plugin.tradeInv.playerItems.get(player).size() >= placeableSlotsPlayer.length) return;
+            if (plugin.getBlacklistedItems().contains(clickedItem.getItemMeta().getDisplayName())) return;
             plugin.tradeInv.playerItems.get(player).add(clickedItem);
             plugin.tradeInv.updateTradeInvItems(player, target, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
             player.getInventory().setItem(e.getSlot(), null);

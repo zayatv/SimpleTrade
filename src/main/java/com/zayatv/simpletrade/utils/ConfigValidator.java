@@ -3,6 +3,8 @@ package com.zayatv.simpletrade.utils;
 import com.zayatv.simpletrade.SimpleTrade;
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.util.Arrays;
+
 public class ConfigValidator {
 
     private final SimpleTrade plugin;
@@ -16,6 +18,7 @@ public class ConfigValidator {
         denyMessage();
         tradeTextBold();
         fullInventoryError();
+        blacklistedItems();
     }
 
     private void denyMessage()
@@ -43,5 +46,12 @@ public class ConfigValidator {
         if (plugin.getConfig().contains("messages.trade.errorMessages.fullInventory")) return;
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("messages.trade.errorMessages");
         section.set("fullInventory", "&cYour or the other player's inventory doesn't contain enough space to store the traded items!");
+    }
+
+    private void blacklistedItems()
+    {
+        if (plugin.getConfig().contains("tradeInventory.blacklistedItems")) return;
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory");
+        section.set("blacklistedItems", Arrays.asList("Anvil", "Dirt"));
     }
 }

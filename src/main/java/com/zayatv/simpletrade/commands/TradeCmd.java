@@ -85,7 +85,7 @@ public class TradeCmd implements CommandExecutor {
 
             if (!target.hasPermission("simpletrade.trade"))
             {
-                target.sendMessage(plugin.prefix() + plugin.getMessage("noPermission"));
+                target.sendMessage(plugin.prefix() + plugin.noPerms());
                 return false;
             }
 
@@ -125,7 +125,7 @@ public class TradeCmd implements CommandExecutor {
 
         if (!player.hasPermission("simpletrade.trade"))
         {
-            player.sendMessage(plugin.prefix() + plugin.getMessage("noPermission"));
+            player.sendMessage(plugin.prefix() + plugin.noPerms());
             return false;
         }
 

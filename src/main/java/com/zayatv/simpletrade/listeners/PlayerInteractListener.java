@@ -8,12 +8,6 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
 public class PlayerInteractListener implements Listener {
 
-    private final SimpleTrade plugin;
-
-    public PlayerInteractListener(SimpleTrade plugin) {
-        this.plugin = plugin;
-    }
-
     @EventHandler
     public void onInteract(PlayerInteractAtEntityEvent e) {
         if(!(e.getRightClicked() instanceof Player)) return;

@@ -28,6 +28,9 @@ cooldowns:
   accept: 1000
   secondsUntilTradeExpires: 10
 tradeInventory:
+  blacklistedItems:
+    - "Anvil"
+    - "Dirt"
   items:
     unplaceableItem:
       material: GRAY_STAINED_GLASS_PANE
