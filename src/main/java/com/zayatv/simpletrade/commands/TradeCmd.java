@@ -194,22 +194,19 @@ public class TradeCmd implements CommandExecutor {
     private TextComponent tradeText(UUID uuid)
     {
         TextComponent accept = new TextComponent();
-        accept.setText(plugin.getMessage("trade.tradeText.accept.text"));
-        accept.setBold(plugin.getConfig().getBoolean("messages.trade.tradeText.accept.bold"));
+        accept.setText(plugin.getMessage("trade.tradeText.accept.text") + " ");
         accept.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/trade accept " + uuid));
         accept.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(plugin.getMessage("trade.tradeText.accept.hover")).create()));
 
         TextComponent deny = new TextComponent();
         deny.setText(plugin.getMessage("trade.tradeText.deny.text"));
-        deny.setBold(plugin.getConfig().getBoolean("messages.trade.tradeText.deny.bold"));
         deny.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/trade deny " + uuid));
         deny.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(plugin.getMessage("trade.tradeText.deny.hover")).create()));
 
         TextComponent text = new TextComponent();
         text.setText(plugin.prefix() + plugin.getMessage("trade.tradeText.text") + " ");
         text.addExtra(accept);
-        text.addExtra(" ");
-        accept.addExtra(deny);
+        text.addExtra(deny);
 
         return text;
     }

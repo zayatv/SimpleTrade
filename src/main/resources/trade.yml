@@ -12,18 +12,17 @@ messages:
     tradeText:
       text: "&6Do you want to accept?"
       accept:
-        text: "&a[ACCEPT]"
-        bold: true
+        text: "&a&l[ACCEPT]"
         hover: "Click to accept"
       deny:
-        text: "&c[DENY]"
-        bold: true
+        text: "&c&l[DENY]"
         hover: "Click to deny"
     errorMessages:
       requestExists: "&cYou already have an outgoing trade request to this player!"
       invalidPlayer: "&6${player} &cisn't online or doesn't exist!"
       tradeSelf: "&cYou can't trade with yourself!"
       wrongTradeUUID: "&cThat trade doesn't exist!"
+      fullInventory: "&cYour or the other player's inventory doesn't contain enough space to store the traded items!"
 cooldowns:
   trade: 1000
   accept: 1000

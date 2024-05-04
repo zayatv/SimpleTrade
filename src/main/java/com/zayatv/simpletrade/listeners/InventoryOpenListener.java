@@ -24,6 +24,9 @@ public class InventoryOpenListener implements Listener {
 
         if (!e.getView().getTitle().equalsIgnoreCase("Trade Menu")) return;
         Player target = plugin.openTrades.get(player);
+        if (target == null)
+            return;
+
         if (plugin.tradeInv.inEconomyMenu.contains(player))
         {
             plugin.tradeInv.inEconomyMenu.remove(player);
@@ -34,12 +37,10 @@ public class InventoryOpenListener implements Listener {
             int[] placeableSlotsPlayer = plugin.tradeInv.getEmptySlotsPlayer();
             int[] placeableSlotsTarget = plugin.tradeInv.getEmptySlotsTarget();
 
-            plugin.tradeInv.updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
+            plugin.tradeInv.updateTradeInvItems(player, target, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
             plugin.tradeInv.setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
             return;
         }
-
-        if (target == null) return;
 
         plugin.tradeInv.isPlayerReady.put(player, false);
         plugin.tradeInv.isPlayerReady.put(target, false);

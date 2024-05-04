@@ -52,6 +52,7 @@ public final class SimpleTrade extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerPickupItemListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryClickListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryOpenListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryCloseListener(this), this);

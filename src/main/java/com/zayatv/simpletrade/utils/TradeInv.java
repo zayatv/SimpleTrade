@@ -2,11 +2,13 @@ package com.zayatv.simpletrade.utils;
 
 import com.zayatv.simpletrade.SimpleTrade;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
@@ -80,19 +82,33 @@ public class TradeInv {
         target.getOpenInventory().close();
     }
 
-    public void updateTradeInvItems(Player player, Inventory playerInv, Inventory targetInv, int[] playerSlots, int[] targetSlots)
+    public void updateTradeInvItems(Player player, Player target, Inventory playerInv, Inventory targetInv, int[] playerSlots, int[] targetSlots)
     {
-        List<ItemStack> items = playerItems.get(player);
+        List<ItemStack> itemsPlayer = playerItems.get(player);
+        List<ItemStack> itemsTarget = playerItems.get(target);
         for (int i = 0; i < playerSlots.length; i++)
         {
-            if (i < items.size())
+            if (i < itemsPlayer.size())
             {
-                playerInv.setItem(playerSlots[i], items.get(i));
-                targetInv.setItem(targetSlots[i], items.get(i));
-                continue;
+                playerInv.setItem(playerSlots[i], itemsPlayer.get(i));
+                targetInv.setItem(targetSlots[i], itemsPlayer.get(i));
             }
-            playerInv.setItem(playerSlots[i], null);
-            targetInv.setItem(targetSlots[i], null);
+            else
+            {
+                playerInv.setItem(playerSlots[i], null);
+                targetInv.setItem(targetSlots[i], null);
+            }
+
+            if (i < itemsTarget.size())
+            {
+                playerInv.setItem(targetSlots[i], itemsTarget.get(i));
+                targetInv.setItem(playerSlots[i], itemsTarget.get(i));
+            }
+            else
+            {
+                playerInv.setItem(targetSlots[i], null);
+                targetInv.setItem(playerSlots[i], null);
+            }
         }
     }
 
@@ -110,13 +126,33 @@ public class TradeInv {
         List<ItemStack> playerItemsList = plugin.tradeInv.playerItems.get(player);
         List<ItemStack> targetItemsList = plugin.tradeInv.playerItems.get(target);
 
+        if (playerItemsList.size() > getEmptySlots(player) || targetItemsList.size() > getEmptySlots(target))
+        {
+            player.sendMessage(plugin.prefix() + plugin.getMessage("trade.errorMessages.fullInventory"));
+            return;
+        }
+
         plugin.tradeInv.itemsToInventory(target, playerItemsList, true);
         plugin.tradeInv.itemsToInventory(player, targetItemsList, true);
     }
 
+    private int getEmptySlots(Player player)
+    {
+        PlayerInventory inv = player.getInventory();
+        ItemStack[] contents = inv.getContents();
+        int i = 0;
+        for (ItemStack item : contents)
+        {
+            if (item != null && item.getType() != Material.AIR) {
+                i++;
+            }
+        }
+        return inv.getSize() - i;
+    }
+
     public void itemsToInventory(Player player, List<ItemStack> items, boolean sendGainedMsg)
     {
-        String itemsGained = null;
+        String itemsGained = "";
         double coinsGained = 0;
 
         for (ItemStack item : items)
@@ -124,7 +160,7 @@ public class TradeInv {
             if (!item.getItemMeta().getPersistentDataContainer().has(econKey, PersistentDataType.DOUBLE)) {
                 player.getInventory().addItem(item);
 
-                if (itemsGained == null) itemsGained = item.getItemMeta().getDisplayName();
+                if (itemsGained.trim().isEmpty()) itemsGained = item.getItemMeta().getDisplayName();
                 else itemsGained += ", " + item.getItemMeta().getDisplayName();
 
                 continue;

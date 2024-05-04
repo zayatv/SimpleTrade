@@ -69,10 +69,10 @@ public class InventoryClickListener implements Listener {
         if (e.getClickedInventory() instanceof PlayerInventory) {
             if (plugin.tradeInv.playerItems.get(player).size() >= placeableSlotsPlayer.length) return;
             plugin.tradeInv.playerItems.get(player).add(clickedItem);
-            plugin.tradeInv.updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
+            plugin.tradeInv.updateTradeInvItems(player, target, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
             player.getInventory().setItem(e.getSlot(), null);
             plugin.tradeInv.isPlayerReady.put(target, false);
-            target.getOpenInventory().getTopInventory().setItem(playerConfirmSlot, confirmItem);
+            plugin.tradeInv.setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
             return;
         }
 
@@ -112,8 +112,8 @@ public class InventoryClickListener implements Listener {
         }
 
         plugin.tradeInv.playerItems.get(player).remove(clickedItem);
-        System.out.println(plugin.tradeInv.playerItems.get(player));
-        plugin.tradeInv.updateTradeInvItems(player, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
+
+        plugin.tradeInv.updateTradeInvItems(player, target, tradeInvPlayer, tradeInvTarget, placeableSlotsPlayer, placeableSlotsTarget);
 
         if (clickedItem.getItemMeta().getPersistentDataContainer().has(plugin.tradeInv.econKey))
         {
@@ -122,12 +122,17 @@ public class InventoryClickListener implements Listener {
         }
 
         player.getInventory().addItem(clickedItem);
+        plugin.tradeInv.isPlayerReady.put(target, false);
+        plugin.tradeInv.setTradeStatusItem(player, target, tradeInvPlayer, tradeInvTarget);
     }
 
     private void openSign(Player player)
     {
         SignGUI gui = SignGUI.builder().setLines(null, "^^^^^^", "Enter amount", "---------------").setHandler((p, result) -> {
             String input = result.getLineWithoutColor(0);
+
+            if (input == null || input.isEmpty() || input.isBlank()) return closeSignActions(player);
+
             double amount = 0;
             String abbreviation = isAmountAbbreviation(input);
 
