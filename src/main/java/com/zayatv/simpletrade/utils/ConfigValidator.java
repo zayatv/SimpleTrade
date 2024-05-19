@@ -19,6 +19,7 @@ public class ConfigValidator {
         tradeTextBold();
         fullInventoryError();
         blacklistedItems();
+        tradeUsageMessages();
     }
 
     private void denyMessage()
@@ -53,5 +54,23 @@ public class ConfigValidator {
         if (plugin.getConfig().contains("tradeInventory.blacklistedItems")) return;
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("tradeInventory");
         section.set("blacklistedItems", Arrays.asList("Anvil", "Dirt"));
+    }
+
+    private void tradeUsageMessages()
+    {
+        if (!plugin.getConfig().contains("messages.trade.errorMessages.wrongUsageTrade"))
+        {
+            plugin.getConfig().set("messages.trade.errorMessages.wrongUsageTrade", "&cUsage: /trade <player>");
+        }
+
+        if (!plugin.getConfig().contains("messages.trade.errorMessages.wrongUsageDeny"))
+        {
+            plugin.getConfig().set("messages.trade.errorMessages.wrongUsageDeny", "&cUsage: /trade deny <tradeUUID>");
+        }
+
+        if (!plugin.getConfig().contains("messages.trade.errorMessages.wrongUsageAccept"))
+        {
+            plugin.getConfig().set("messages.trade.errorMessages.wrongUsageAccept", "&cUsage: /trade accept <tradeUUID>");
+        }
     }
 }

@@ -23,6 +23,9 @@ messages:
       tradeSelf: "&cYou can't trade with yourself!"
       wrongTradeUUID: "&cThat trade doesn't exist!"
       fullInventory: "&cYour or the other player's inventory doesn't contain enough space to store the traded items!"
+      wrongUsageTrade: "&cUsage: /trade <player>"
+      wrongUsageDeny: "&cUsage: /trade deny <tradeUUID>"
+      wrongUsageAccept: "&cUsage: /trade accept <tradeUUID>"
 cooldowns:
   trade: 1000
   accept: 1000

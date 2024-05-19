@@ -43,7 +43,7 @@ public class TradeCmd implements CommandExecutor {
 
             if (args.length != 2)
             {
-                target.sendMessage(plugin.prefix() + plugin.color("&cUsage: /trade accept <tradeUUID>"));
+                target.sendMessage(plugin.prefix() + plugin.getMessage("trade.errorMessages.wrongUsageAccept"));
                 return false;
             }
 
@@ -91,7 +91,7 @@ public class TradeCmd implements CommandExecutor {
 
             if (args.length != 2)
             {
-                target.sendMessage(plugin.prefix() + plugin.color("&cUsage: /trade deny <tradeUUID>"));
+                target.sendMessage(plugin.prefix() + plugin.getMessage("trade.errorMessages.wrongUsageDeny"));
                 return false;
             }
 
@@ -131,7 +131,7 @@ public class TradeCmd implements CommandExecutor {
 
         if (args.length != 1)
         {
-            player.sendMessage(plugin.prefix() + plugin.color("&cUsage: /trade <player>"));
+            player.sendMessage(plugin.prefix() + plugin.getMessage("trade.errorMessages.wrongUsageTrade"));
             return false;
         }
 
